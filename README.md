@@ -77,7 +77,7 @@ http://localhost:3000/login
 
 ---
 
-# Next Steps (optional improvements)
+# Next Steps 
 
 * Add real login system
 * Connect database

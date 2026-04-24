@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { assetUtils } from "@/lib/utils";
 import { Asset } from "@/lib/types";
 
-export default function DashboardPage() {
+export default function FurniturePage() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,7 +39,11 @@ export default function DashboardPage() {
     // Load assets from localStorage
     setIsLoading(true);
     const loadedAssets = assetUtils.getAssets();
-    setAssets(loadedAssets);
+    // Filter for Furniture category only
+    const furnitureAssets = loadedAssets.filter(
+      (asset) => asset.category.toLowerCase() === "furniture"
+    );
+    setAssets(furnitureAssets);
     setIsLoading(false);
   }, []);
 
@@ -48,9 +52,9 @@ export default function DashboardPage() {
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Computer Hardware</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Furniture</h2>
           <p className="text-gray-500 text-sm mt-1">
-            Manage all computer hardware assets
+            Manage all furniture assets
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -79,11 +83,11 @@ export default function DashboardPage() {
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-gray-500 text-sm">Total Assets</p>
+          <p className="text-gray-500 text-sm">Total Furniture</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">{assets.length}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-gray-500 text-sm">Active Assets</p>
+          <p className="text-gray-500 text-sm">Active Furniture</p>
           <p className="text-3xl font-bold text-primary-500 mt-2">
             {assets.filter((a) => a.assetStatus === "active").length}
           </p>
@@ -100,7 +104,7 @@ export default function DashboardPage() {
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
         {/* Table Header with Action Buttons */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-          <h3 className="font-semibold text-gray-900">Assets</h3>
+          <h3 className="font-semibold text-gray-900">Furniture Assets</h3>
           <div className="flex gap-2">
             <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 transition">
               Filter
@@ -212,7 +216,12 @@ export default function DashboardPage() {
                             )
                           ) {
                             assetUtils.deleteAsset(asset.id);
-                            setAssets(assetUtils.getAssets());
+                            // Reload and filter furniture assets
+                            const loadedAssets = assetUtils.getAssets();
+                            const furnitureAssets = loadedAssets.filter(
+                              (a) => a.category.toLowerCase() === "furniture"
+                            );
+                            setAssets(furnitureAssets);
                           }
                         }}
                         className="p-2 text-red-600 hover:bg-red-50 rounded transition"
@@ -253,7 +262,7 @@ export default function DashboardPage() {
                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
               />
             </svg>
-            <p className="text-gray-500 mb-4">No assets found</p>
+            <p className="text-gray-500 mb-4">No furniture assets found</p>
             <Link
               href="/register-asset"
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition"
@@ -271,7 +280,7 @@ export default function DashboardPage() {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Register Your First Asset
+              Register Your First Furniture
             </Link>
           </div>
         )}

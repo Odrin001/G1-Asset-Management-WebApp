@@ -1,51 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 
 export default function DashboardLayout({
   children,
 }: {
   readonly children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div
-        className={`${
-          sidebarOpen ? "w-64" : "w-20"
-        } bg-primary-700 text-white transition-all duration-300 flex flex-col shadow-lg`}
-      >
+      <div className="w-64 bg-primary-700 text-white flex flex-col shadow-lg">
         {/* Logo Section */}
-        <div className="p-6 flex items-center justify-between border-b border-primary-600">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg
-                className="w-6 h-6 text-primary-700"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
-            </div>
-            {sidebarOpen && (
-              <span className="font-bold text-lg">AssetTrack</span>
-            )}
-          </div>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1 hover:bg-primary-600 rounded-lg transition"
-          >
+        <div className="p-6 flex items-center gap-3 border-b border-primary-600">
+          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
             <svg
-              className="w-5 h-5"
+              className="w-6 h-6 text-primary-700"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -54,20 +24,19 @@ export default function DashboardLayout({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-          </button>
+          </div>
+          <span className="font-bold text-lg">AssetTrack</span>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
           {/* Assets Section */}
-          {sidebarOpen && (
-            <div className="text-xs font-semibold text-primary-300 uppercase px-2 py-2 mb-4">
-              Assets
-            </div>
-          )}
+          <div className="text-xs font-semibold text-primary-300 uppercase px-2 py-2 mb-4">
+            Assets
+          </div>
 
           <Link
             href="/dashboard"
@@ -85,11 +54,11 @@ export default function DashboardLayout({
                 clipRule="evenodd"
               />
             </svg>
-            {sidebarOpen && <span>Computer Hardware</span>}
+            <span>Computer Hardware</span>
           </Link>
 
           <Link
-            href="/dashboard"
+            href="/furniture"
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-primary-600 text-primary-100 font-medium transition"
           >
             <svg
@@ -104,7 +73,7 @@ export default function DashboardLayout({
                 clipRule="evenodd"
               />
             </svg>
-            {sidebarOpen && <span>Furniture</span>}
+            <span>Furniture</span>
           </Link>
         </nav>
 
@@ -126,11 +95,11 @@ export default function DashboardLayout({
                 d="M14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"
               />
             </svg>
-            {sidebarOpen && <span>Analytics</span>}
+            <span>Analytics</span>
           </button>
 
           <button className="w-full bg-white text-primary-700 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
-            {sidebarOpen ? "Contact Support" : "?"}
+            Contact Support
           </button>
         </div>
       </div>
