@@ -8,18 +8,20 @@ import { Card, CardBody, Input, Button } from "@/components";
 
 export default function LoginPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    e: React.SyntheticEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    // Validate email format
     if (!email.trim()) {
       setError("Email is required");
       setLoading(false);
@@ -38,11 +40,34 @@ export default function LoginPage() {
       return;
     }
 
-    // Simulate successful login and redirect
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       router.push("/dashboard");
+    } catch (error) {
+      setError("Cannot connect to server");
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   return (
@@ -107,9 +132,13 @@ export default function LoginPage() {
             />
 
             <div className="relative">
-              <label htmlFor="password" className="text-sm font-semibold text-gray-900 block mb-2">
+              <label
+                htmlFor="password"
+                className="text-sm font-semibold text-gray-900 block mb-2"
+              >
                 Password <span className="text-red-500">*</span>
               </label>
+
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -120,6 +149,7 @@ export default function LoginPage() {
                     />
                   </svg>
                 </div>
+
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
@@ -129,8 +159,9 @@ export default function LoginPage() {
                     setPassword(e.target.value);
                     setError("");
                   }}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}

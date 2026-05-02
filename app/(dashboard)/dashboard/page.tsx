@@ -8,6 +8,7 @@ import { Asset } from "@/lib/types";
 export default function DashboardPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getStatusBadgeClass = (status: string): string => {
     switch (status) {
@@ -41,7 +42,32 @@ export default function DashboardPage() {
     const loadedAssets = assetUtils.getAssets();
     setAssets(loadedAssets);
     setIsLoading(false);
+
+    // Listen for search updates from layout
+    const handleSearchUpdate = (e: CustomEvent) => {
+      setSearchQuery(e.detail);
+    };
+    window.addEventListener("searchUpdate" as keyof WindowEventMap, handleSearchUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener("searchUpdate" as keyof WindowEventMap, handleSearchUpdate as EventListener);
+    };
   }, []);
+
+  // Filter assets based on search query and category
+  const filteredAssets = assets.filter((asset) => {
+    // Only show Computer Hardware category
+    if (asset.category !== "Computer Hardware") return false;
+    
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      asset.name?.toLowerCase().includes(query) ||
+      asset.category?.toLowerCase().includes(query) ||
+      asset.location?.toLowerCase().includes(query) ||
+      asset.assetType?.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -80,18 +106,18 @@ export default function DashboardPage() {
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-lg p-4 border border-gray-200">
           <p className="text-gray-500 text-sm">Total Assets</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{assets.length}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{filteredAssets.length}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-gray-200">
           <p className="text-gray-500 text-sm">Active Assets</p>
           <p className="text-3xl font-bold text-primary-500 mt-2">
-            {assets.filter((a) => a.assetStatus === "active").length}
+            {filteredAssets.filter((a) => a.assetStatus === "active").length}
           </p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-gray-200">
           <p className="text-gray-500 text-sm">Good Condition</p>
           <p className="text-3xl font-bold text-green-600 mt-2">
-            {assets.filter((a) => a.condition === "good" || a.condition === "new").length}
+            {filteredAssets.filter((a) => a.condition === "good" || a.condition === "new").length}
           </p>
         </div>
       </div>
@@ -132,7 +158,7 @@ export default function DashboardPage() {
         )}
 
         {/* Table */}
-        {!isLoading && assets.length > 0 && (
+        {!isLoading && filteredAssets.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -161,7 +187,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {assets.map((asset) => (
+                {filteredAssets.map((asset) => (
                   <tr
                     key={asset.id}
                     className="border-b border-gray-200 hover:bg-gray-50 transition"
@@ -238,22 +264,35 @@ export default function DashboardPage() {
         )}
 
         {/* Empty State */}
-        {!isLoading && assets.length === 0 && (
+        {!isLoading && filteredAssets.length === 0 && (
           <div className="px-6 py-16 text-center">
-            <svg
-              className="w-12 h-12 text-gray-300 mx-auto mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-              />
-            </svg>
-            <p className="text-gray-500 mb-4">No assets found</p>
+            {searchQuery ? (
+              <>
+                <svg
+                  className="w-12 h-12 text-gray-300 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <p className="text-gray-500 mb-4">No assets found for "{searchQuery}"</p>
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    window.dispatchEvent(new CustomEvent("searchUpdate", { detail: "" }));
+                  }}
+                  className="text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Clear search
+                </button>
+              </>
+            ) : (
             <Link
               href="/register-asset"
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition"
@@ -273,6 +312,7 @@ export default function DashboardPage() {
               </svg>
               Register Your First Asset
             </Link>
+            )}
           </div>
         )}
       </div>

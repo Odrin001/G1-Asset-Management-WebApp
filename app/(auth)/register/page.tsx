@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { validateSDCAEmail } from "@/lib/utils";
 import { Card, CardBody, Input, Button } from "@/components";
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +18,9 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    e: React.SyntheticEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -51,12 +56,40 @@ export default function RegisterPage() {
       return;
     }
 
-    // Simulate successful registration
-    setTimeout(() => {
-      console.log("Account created:", { fullName, email });
-      setLoading(false);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fullName,
+          email,
+          password
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Registration failed");
+        setLoading(false);
+        return;
+      }
+
       alert("Account created successfully! Please sign in.");
-    }, 500);
+
+      setFullName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+
+      router.push("/login");
+    } catch (err) {
+      setError("Cannot connect to server");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -143,9 +176,13 @@ export default function RegisterPage() {
             />
 
             <div>
-              <label htmlFor="password" className="text-sm font-semibold text-gray-900 block mb-2">
+              <label
+                htmlFor="password"
+                className="text-sm font-semibold text-gray-900 block mb-2"
+              >
                 Password <span className="text-red-500">*</span>
               </label>
+
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -156,6 +193,7 @@ export default function RegisterPage() {
                     />
                   </svg>
                 </div>
+
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
@@ -167,6 +205,7 @@ export default function RegisterPage() {
                   }}
                   className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -182,15 +221,20 @@ export default function RegisterPage() {
                   </svg>
                 </button>
               </div>
+
               <p className="text-xs text-gray-500 mt-1">
                 Must be at least 6 characters long
               </p>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-900 block mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="text-sm font-semibold text-gray-900 block mb-2"
+              >
                 Confirm Password <span className="text-red-500">*</span>
               </label>
+
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -201,6 +245,7 @@ export default function RegisterPage() {
                     />
                   </svg>
                 </div>
+
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   id="confirmPassword"
@@ -212,9 +257,12 @@ export default function RegisterPage() {
                   }}
                   className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

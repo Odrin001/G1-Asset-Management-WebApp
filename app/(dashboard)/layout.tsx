@@ -1,21 +1,46 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function DashboardLayout({
   children,
 }: {
   readonly children: React.ReactNode;
 }) {
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+
+  // Update URL when search changes
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Update URL with search query for child pages to access
+    const url = new URL(window.location.href);
+    if (searchQuery) {
+      url.searchParams.set("search", searchQuery);
+    } else {
+      url.searchParams.delete("search");
+    }
+    window.history.pushState({}, "", url);
+    // Dispatch custom event for child components to listen
+    window.dispatchEvent(new CustomEvent("searchUpdate", { detail: searchQuery }));
+  };
+
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-primary-700 text-white flex flex-col shadow-lg">
+      <div className="w-64 bg-primary-600 border-r border-primary-800 text-white flex flex-col shadow-lg">
         {/* Logo Section */}
-        <div className="p-6 flex items-center gap-3 border-b border-primary-600">
+        <div className="p-6 flex items-center gap-3 border-b border-primary-700">
           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
             <svg
-              className="w-6 h-6 text-primary-700"
+              className="w-6 h-6 text-primary-800"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -28,19 +53,19 @@ export default function DashboardLayout({
               />
             </svg>
           </div>
-          <span className="font-bold text-lg">AssetTrack</span>
+          <span className="font-bold text-lg text-white">AssetTrack</span>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
           {/* Assets Section */}
-          <div className="text-xs font-semibold text-primary-300 uppercase px-2 py-2 mb-4">
+          <div className="text-xs font-semibold text-primary-200 uppercase px-2 py-2 mb-4">
             Assets
           </div>
 
           <Link
             href="/dashboard"
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-600 hover:bg-primary-600 text-white font-medium transition"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-medium transition"
           >
             <svg
               className="w-5 h-5 flex-shrink-0"
@@ -59,7 +84,7 @@ export default function DashboardLayout({
 
           <Link
             href="/furniture"
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-primary-600 text-primary-100 font-medium transition"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-primary-700 text-primary-100 font-medium transition"
           >
             <svg
               className="w-5 h-5 flex-shrink-0"
@@ -78,27 +103,25 @@ export default function DashboardLayout({
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-primary-600 space-y-3">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition">
-            <svg
-              className="w-5 h-5 flex-shrink-0"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+        <div className="p-4 border-t border-primary-700 space-y-3">
+            <Link
+              href="/analytics"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-700 hover:bg-primary-600 text-white font-medium transition"
             >
-              <path
-                d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5z"
-              />
-              <path
-                d="M8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7z"
-              />
-              <path
-                d="M14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"
-              />
-            </svg>
-            <span>Analytics</span>
-          </button>
+              <svg
+                className="w-5 h-5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5z" />
+                <path d="M8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7z" />
+                <path d="M14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+              </svg>
 
-          <button className="w-full bg-white text-primary-700 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
+              <span>Analytics</span>
+            </Link>
+
+          <button className="w-full bg-white text-primary-700 py-2 rounded-lg font-semibold hover:bg-primary-50 transition">
             Contact Support
           </button>
         </div>
@@ -107,12 +130,12 @@ export default function DashboardLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
-          <h1 className="text-gray-400 text-sm">Hello, admin!</h1>
+        <div className="bg-primary-600 border-b border-primary-700 px-8 py-4 flex items-center justify-between">
+          <h1 className="text-white text-sm">Hello, admin!</h1>
           <div className="flex items-center gap-4">
-            <div className="relative">
+            <form onSubmit={handleSearchSubmit} className="relative">
               <svg
-                className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
+                className="w-5 h-5 text-primary-300 absolute left-3 top-1/2 transform -translate-y-1/2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -127,11 +150,34 @@ export default function DashboardLayout({
               <input
                 type="text"
                 placeholder="Search assets..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-gray-50 text-sm"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="pl-10 pr-4 py-2 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 bg-primary-50 text-sm w-64 text-primary-900 placeholder-primary-400"
               />
-            </div>
-            <button className="w-10 h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-semibold hover:bg-primary-600 transition">
-              M
+            </form>
+            <button
+              onClick={() => {
+                if (confirm("Are you sure you want to sign out?")) {
+                  window.location.href = "/login";
+                }
+              }}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+              title="Sign Out"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              <span className="text-sm font-medium">Sign Out</span>
             </button>
           </div>
         </div>
