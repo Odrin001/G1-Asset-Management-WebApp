@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { assetUtils } from "@/lib/utils";
 import { Asset } from "@/lib/types";
+import toast from "react-hot-toast";
 
 export default function DashboardPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -231,16 +232,24 @@ export default function DashboardPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => {
-                          if (
-                            confirm(
-                              "Are you sure you want to delete this asset?"
-                            )
-                          ) {
-                            assetUtils.deleteAsset(asset.id);
-                            setAssets(assetUtils.getAssets());
-                          }
+                        onClick={ async () => {
+                          if (confirm("Are you sure you want to delete this asset?")) {
+                            const toastId = toast.loading("Deleting asset...");
+                            
+                            try{
+                              // Simulate API call delay
+                              await new Promise((resolve) => setTimeout(resolve, 1000));
+
+                              assetUtils.deleteAsset(asset.id);
+                              setAssets(assetUtils.getAssets());
+
+                              toast.success("Asset deleted!", { id: toastId });
+                            } catch (error) {
+                              toast.error("Failed to delete asset.", { id: toastId });
+                            }
+                          } 
                         }}
+                        
                         className="p-2 text-red-600 hover:bg-red-50 rounded transition"
                       >
                         <svg
