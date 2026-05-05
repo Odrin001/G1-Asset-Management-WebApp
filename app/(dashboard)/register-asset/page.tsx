@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { assetUtils } from "@/lib/utils";
+import { assetUtils, validateAlphanumeric, validateQuantity, validateRFIDUID } from "@/lib/utils";
 import { Card, CardBody, CardHeader, Input, Select, Textarea, Button } from "@/components";
 
 export default function RegisterAssetPage() {
@@ -43,34 +43,55 @@ export default function RegisterAssetPage() {
     setError("");
     setIsLoading(true);
 
-    // Validate required fields
+    // Validate required fields with proper validation functions
     if (!formData.assetType.trim()) {
       setError("Asset Type is required");
       setIsLoading(false);
       return;
     }
-    if (!formData.name.trim()) {
-      setError("Asset Name is required");
+    
+    const nameValidation = validateAlphanumeric(formData.name, "Asset Name", 2, 100);
+    if (!nameValidation.valid) {
+      setError(nameValidation.error || "Asset Name is invalid");
       setIsLoading(false);
       return;
     }
+    
     if (!formData.category.trim()) {
       setError("Category is required");
       setIsLoading(false);
       return;
     }
-    if (!formData.location.trim()) {
-      setError("Location is required");
+    
+    const locationValidation = validateAlphanumeric(formData.location, "Location", 2, 100);
+    if (!locationValidation.valid) {
+      setError(locationValidation.error || "Location is invalid");
       setIsLoading(false);
       return;
     }
+    
     if (!formData.dateRegistered) {
       setError("Date Registered is required");
       setIsLoading(false);
       return;
     }
+    
     if (!formData.condition) {
       setError("Condition is required");
+      setIsLoading(false);
+      return;
+    }
+    
+    const quantityValidation = validateQuantity(formData.quantity, 1, 10000);
+    if (!quantityValidation.valid) {
+      setError(quantityValidation.error || "Quantity is invalid");
+      setIsLoading(false);
+      return;
+    }
+    
+    const rfidValidation = validateRFIDUID(formData.rfidUid);
+    if (!rfidValidation.valid) {
+      setError(rfidValidation.error || "RFID UID is invalid");
       setIsLoading(false);
       return;
     }

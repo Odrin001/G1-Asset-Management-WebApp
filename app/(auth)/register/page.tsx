@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { validateSDCAEmail } from "@/lib/utils";
+import { validateSDCAEmail, validateName, validatePassword } from "@/lib/utils";
 import { Card, CardBody, Input, Button } from "@/components";
 
 export default function RegisterPage() {
@@ -26,8 +26,9 @@ export default function RegisterPage() {
     setLoading(true);
 
     // Validation
-    if (!fullName.trim()) {
-      setError("Full name is required");
+    const nameValidation = validateName(fullName);
+    if (!nameValidation.valid) {
+      setError(nameValidation.error || "Full name is invalid");
       setLoading(false);
       return;
     }
@@ -44,8 +45,9 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!password.trim() || password.length < 6) {
-      setError("Password must be at least 6 characters");
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      setError(passwordValidation.error || "Password is invalid");
       setLoading(false);
       return;
     }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { validateSDCAEmail } from "@/lib/utils";
+import { validateSDCAEmail, validatePassword } from "@/lib/utils";
 import { Card, CardBody, Input, Button } from "@/components";
 
 export default function LoginPage() {
@@ -34,8 +34,9 @@ export default function LoginPage() {
       return;
     }
 
-    if (!password.trim()) {
-      setError("Password is required");
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      setError(passwordValidation.error || "Password is invalid");
       setLoading(false);
       return;
     }
