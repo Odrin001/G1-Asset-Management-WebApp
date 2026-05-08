@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
   fullName: String,
   email: String,
   password: String,
-  role: String
+  role: String,
 });
 
 const User =
@@ -22,8 +22,8 @@ export async function OPTIONS() {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
-      }
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
     }
   );
 }
@@ -32,50 +32,64 @@ export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const { email, password } = await req.json();
+    const { fullName, email, password } = await req.json();
 
-        const user = await mongoose.model("User").findOne({ email });
-
-        if (!user) {
-        return NextResponse.json(
-            { message: "Invalid Email" },
-            {
-            status: 401,
-            headers: {
-                "Access-Control-Allow-Origin": "*"
-            }
-            }
-        );
+    if (!fullName || !email || !password) {
+      return NextResponse.json(
+        { message: "All fields are required" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
         }
+      );
+    }
 
-        const match = await bcrypt.compare(password, user.password);
+    if (!email.endsWith("@sdca.edu.ph")) {
+      return NextResponse.json(
+        { message: "Use SDCA email only" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
 
-        if (!match) {
-        return NextResponse.json(
-            { message: "Invalid Password" },
-            {
-            status: 401,
-            headers: {
-                "Access-Control-Allow-Origin": "*"
-            }
-            }
-        );
-}
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { message: "Email already registered" },
+        {
+          status: 409,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await User.create({
+      fullName,
+      email,
+      password: hashedPassword,
+      role: "user",
+    });
 
     return NextResponse.json(
       {
-        message: "Login successful",
-        user: {
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role
-        }
+        message: "Account created successfully",
       },
       {
-        status: 200,
+        status: 201,
         headers: {
-          "Access-Control-Allow-Origin": "*"
-        }
+          "Access-Control-Allow-Origin": "*",
+        },
       }
     );
   } catch (error) {
@@ -84,8 +98,8 @@ export async function POST(req: Request) {
       {
         status: 500,
         headers: {
-          "Access-Control-Allow-Origin": "*"
-        }
+          "Access-Control-Allow-Origin": "*",
+        },
       }
     );
   }

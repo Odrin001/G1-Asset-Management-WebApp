@@ -11,6 +11,11 @@ interface InputProps {
   error?: string;
   value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
+  labelClassName?: string;
+
+  max?: string;
+  min?: string;
 }
 
 /**
@@ -28,13 +33,17 @@ export function Input({
   error,
   value,
   onChange,
+  className = "",
+  labelClassName = "",
+  max,
+  min,
 }: Readonly<InputProps>) {
   return (
     <div>
       {label && (
         <div className="flex items-center gap-2 mb-2">
           {icon && <span className="text-gray-500">{icon}</span>}
-          <label htmlFor={id} className="text-sm font-semibold text-gray-900">
+          <label htmlFor={id} className={`text-sm font-semibold text-gray-900 ${labelClassName}`}>
             {label}
             {required && <span className="text-red-500 ml-1">*</span>}
           </label>
@@ -46,11 +55,13 @@ export function Input({
         placeholder={placeholder}
         value={value || ""}
         onChange={onChange}
+        max={max}   
+        min={min}   
         className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition ${
           error
             ? "border-red-300 focus:ring-red-500"
             : "border-gray-300 focus:ring-primary-500"
-        }`}
+        } ${className}`}
       />
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       {helperText && !error && (
