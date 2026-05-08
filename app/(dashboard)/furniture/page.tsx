@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { assetUtils } from "@/lib/utils";
 import { Asset } from "@/lib/types";
 
 export default function FurniturePage() {
@@ -22,29 +21,55 @@ export default function FurniturePage() {
     }
   };
 
-  const getConditionBadgeClass = (condition: string): string => {
-    switch (condition) {
-      case "new":
-        return "bg-blue-100 text-blue-800";
-      case "good":
-        return "bg-green-100 text-green-800";
-      case "fair":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-red-100 text-red-800";
-    }
-  };
-
   useEffect(() => {
-    // Load assets from localStorage
-    setIsLoading(true);
-    const loadedAssets = assetUtils.getAssets();
-    // Filter for Furniture category only
-    const furnitureAssets = loadedAssets.filter(
-      (asset) => asset.category.toLowerCase() === "furniture"
-    );
-    setAssets(furnitureAssets);
-    setIsLoading(false);
+    const fetchAssets = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch regular assets
+        const assetsRes = await fetch("/api/assets");
+        const assetsData = await assetsRes.json();
+
+        // Fetch RFID tags
+        const rfidRes = await fetch("/api/rfid/tags");
+        const rfidData = await rfidRes.json();
+
+        let allAssets: Asset[] = [];
+
+        // Process regular assets
+        if (assetsRes.ok) {
+          const furnitureAssets = assetsData.assets.filter(
+            (asset: Asset) => asset.category.toLowerCase() === "furniture"
+          );
+          allAssets = [...allAssets, ...furnitureAssets];
+        }
+
+        // Process RFID tags and convert to asset format
+        if (rfidRes.ok) {
+          const rfidAssets: Asset[] = rfidData.rfidTags.map((tag: any) => ({
+            id: tag._id.toString(),
+            name: tag.assetName,
+            category: "Furniture",
+            location: tag.currentRoom,
+            dateRegistered: tag.createdAt.split('T')[0], // Convert to date string
+            rfidUid: tag.uid,
+            assetType: "furniture",
+            quantity: 1,
+            assetStatus: "active",
+            condition: "good",
+            createdAt: tag.createdAt,
+          }));
+          allAssets = [...allAssets, ...rfidAssets];
+        }
+
+        setAssets(allAssets);
+      } catch (error) {
+        console.error("Error fetching assets:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAssets();
   }, []);
 
   return (
@@ -93,9 +118,9 @@ export default function FurniturePage() {
           </p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-gray-500 text-sm">Good Condition</p>
-          <p className="text-3xl font-bold text-green-600 mt-2">
-            {assets.filter((a) => a.condition === "good" || a.condition === "new").length}
+          <p className="text-gray-500 text-sm">RFID Tracked</p>
+          <p className="text-3xl font-bold text-blue-600 mt-2">
+            {assets.filter((a) => a.rfidUid).length}
           </p>
         </div>
       </div>
@@ -157,7 +182,7 @@ export default function FurniturePage() {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Condition
+                    RFID UID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Actions
@@ -190,13 +215,8 @@ export default function FurniturePage() {
                           asset.assetStatus.slice(1)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getConditionBadgeClass(asset.condition)}`}
-                      >
-                        {asset.condition.charAt(0).toUpperCase() +
-                          asset.condition.slice(1)}
-                      </span>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {asset.rfidUid || "N/A"}
                     </td>
                     <td className="px-6 py-4 text-sm flex gap-2">
                       <button className="p-2 text-primary-600 hover:bg-primary-50 rounded transition">
@@ -209,19 +229,64 @@ export default function FurniturePage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (
                             confirm(
                               "Are you sure you want to delete this asset?"
                             )
                           ) {
-                            assetUtils.deleteAsset(asset.id);
-                            // Reload and filter furniture assets
-                            const loadedAssets = assetUtils.getAssets();
-                            const furnitureAssets = loadedAssets.filter(
-                              (a) => a.category.toLowerCase() === "furniture"
-                            );
-                            setAssets(furnitureAssets);
+                            try {
+                              // Determine if this is an RFID tag or regular asset
+                              const isRfidTag = !!asset.rfidUid;
+                              const deleteUrl = isRfidTag
+                                ? `/api/rfid/tags/${asset.id}`
+                                : `/api/assets/${asset.id}`;
+
+                              const res = await fetch(deleteUrl, {
+                                method: "DELETE",
+                              });
+                              if (res.ok) {
+                                // Refresh assets
+                                const assetsRes = await fetch("/api/assets");
+                                const assetsData = await assetsRes.json();
+
+                                const rfidRes = await fetch("/api/rfid/tags");
+                                const rfidData = await rfidRes.json();
+
+                                let allAssets: Asset[] = [];
+
+                                if (assetsRes.ok) {
+                                  const furnitureAssets = assetsData.assets.filter(
+                                    (a: Asset) => a.category.toLowerCase() === "furniture"
+                                  );
+                                  allAssets = [...allAssets, ...furnitureAssets];
+                                }
+
+                                if (rfidRes.ok) {
+                                  const rfidAssets: Asset[] = rfidData.rfidTags.map((tag: any) => ({
+                                    id: tag._id.toString(),
+                                    name: tag.assetName,
+                                    category: "Furniture",
+                                    location: tag.currentRoom,
+                                    dateRegistered: tag.createdAt.split('T')[0],
+                                    rfidUid: tag.uid,
+                                    assetType: "furniture",
+                                    quantity: 1,
+                                    assetStatus: "active",
+                                    condition: "good",
+                                    createdAt: tag.createdAt,
+                                  }));
+                                  allAssets = [...allAssets, ...rfidAssets];
+                                }
+
+                                setAssets(allAssets);
+                              } else {
+                                alert("Failed to delete asset");
+                              }
+                            } catch (error) {
+                              console.error("Error deleting asset:", error);
+                              alert("Error deleting asset");
+                            }
                           }
                         }}
                         className="p-2 text-red-600 hover:bg-red-50 rounded transition"

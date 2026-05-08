@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { assetUtils } from "@/lib/utils";
 import { Asset } from "@/lib/types";
 
 export default function DashboardPage() {
@@ -37,11 +36,65 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    // Load assets from localStorage
-    setIsLoading(true);
-    const loadedAssets = assetUtils.getAssets();
-    setAssets(loadedAssets);
-    setIsLoading(false);
+    const fetchAssets = async () => {
+      setIsLoading(true);
+
+      try {
+        // Fetch regular assets
+        const assetsRes = await fetch("/api/assets");
+        const assetsData = await assetsRes.json();
+
+        // Fetch RFID assets
+        const rfidRes = await fetch("/api/rfid/tags");
+        const rfidData = await rfidRes.json();
+
+        let allAssets: Asset[] = [];
+
+        // Regular assets
+        if (assetsRes.ok) {
+          const computerAssets = assetsData.assets.filter(
+            (asset: Asset) =>
+              asset.category.toLowerCase() === "computer hardware"
+          );
+
+          allAssets = [...allAssets, ...computerAssets];
+        }
+
+        // RFID assets
+        if (rfidRes.ok) {
+          const rfidAssets: Asset[] = rfidData.rfidTags
+            .filter(
+              (tag: any) => {
+                const category = tag.category?.toLowerCase();
+                return category === "computer hardware" || category === "furniture";
+              }
+            )
+            .map((tag: any) => ({
+              id: tag._id.toString(),
+              name: tag.assetName,
+              category: tag.category,
+              location: tag.currentRoom,
+              dateRegistered: tag.dateRegistered || tag.createdAt.split("T")[0],
+              rfidUid: tag.uid,
+              assetType: tag.category?.toLowerCase() === "furniture" ? "furniture" : "computer hardware",
+              quantity: tag.quantity || 1,
+              assetStatus: tag.assetStatus || "active",
+              condition: tag.condition || "good",
+              createdAt: tag.createdAt,
+            }));
+
+          allAssets = [...allAssets, ...rfidAssets];
+        }
+
+        setAssets(allAssets);
+      } catch (error) {
+        console.error("Error fetching assets:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAssets();
 
     // Listen for search updates from layout
     const handleSearchUpdate = (e: CustomEvent) => {
@@ -56,8 +109,9 @@ export default function DashboardPage() {
 
   // Filter assets based on search query and category
   const filteredAssets = assets.filter((asset) => {
-    // Only show Computer Hardware category
-    if (asset.category !== "Computer Hardware") return false;
+    // Show Computer Hardware and Furniture categories (case insensitive)
+    const category = asset.category.toLowerCase();
+    if (category !== "computer hardware" && category !== "furniture") return false;
     
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -74,9 +128,9 @@ export default function DashboardPage() {
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Computer Hardware</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Assets Dashboard</h2>
           <p className="text-gray-600 text-lg mt-2">
-            Manage all computer hardware assets
+            Manage all computer hardware and furniture assets
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -258,14 +312,61 @@ export default function DashboardPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (
                             confirm(
                               "Are you sure you want to delete this asset?"
                             )
                           ) {
-                            assetUtils.deleteAsset(asset.id);
-                            setAssets(assetUtils.getAssets());
+                            try {
+                              // Determine if this is an RFID tag or regular asset
+                              const isRfidTag = !!asset.rfidUid;
+                              const deleteUrl = isRfidTag
+                                ? `/api/rfid/tags/${asset.id}`
+                                : `/api/assets/${asset.id}`;
+
+                              const res = await fetch(deleteUrl, {
+                                method: "DELETE",
+                              });
+                              if (res.ok) {
+                                // Refresh assets
+                                const assetsRes = await fetch("/api/assets");
+                                const assetsData = await assetsRes.json();
+
+                                const rfidRes = await fetch("/api/rfid/tags");
+                                const rfidData = await rfidRes.json();
+
+                                let allAssets: Asset[] = [];
+
+                                if (assetsRes.ok) {
+                                  allAssets = [...allAssets, ...assetsData.assets];
+                                }
+
+                                if (rfidRes.ok) {
+                                  const rfidAssets: Asset[] = rfidData.rfidTags.map((tag: any) => ({
+                                    id: tag._id.toString(),
+                                    name: tag.assetName,
+                                    category: tag.category || "Computer Hardware",
+                                    location: tag.currentRoom,
+                                    dateRegistered: tag.dateRegistered || tag.createdAt.split('T')[0],
+                                    rfidUid: tag.uid,
+                                    assetType: tag.category?.toLowerCase() === "furniture" ? "furniture" : "computer",
+                                    quantity: tag.quantity || 1,
+                                    assetStatus: tag.assetStatus || "active",
+                                    condition: tag.condition || "good",
+                                    createdAt: tag.createdAt,
+                                  }));
+                                  allAssets = [...allAssets, ...rfidAssets];
+                                }
+
+                                setAssets(allAssets);
+                              } else {
+                                alert("Failed to delete asset");
+                              }
+                            } catch (error) {
+                              console.error("Error deleting asset:", error);
+                              alert("Error deleting asset");
+                            }
                           }
                         }}
                         className="p-2 text-red-600 hover:bg-red-50 rounded transition"
