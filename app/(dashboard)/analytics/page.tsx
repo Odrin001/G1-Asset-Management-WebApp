@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 
 type ScanLog = {
-  action: "ENTER";
+  action: string;
   time: string;
   date: string;
   uid: string;
   fromRoom: string;
   toRoom: string;
   assetName: string;
+  createdAt: string;
 };
 
 function generateUID(): string {
@@ -38,32 +39,61 @@ function getCurrentDate(): string {
 export default function AnalyticsPage() {
   const [logs, setLogs] = useState<ScanLog[]>([]);
 
+  const fetchLogs = async () => {
+  try {
+    const response = await fetch(
+      "/api/scanner/logs"
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (Array.isArray(data)) {
+      setLogs(data);
+    } else {
+      console.error("Data is not an array", data);
+      setLogs([]);
+    }
+  } catch (error) {
+    console.error("Failed to fetch logs");
+  }
+};
+
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
+  fetchLogs();
 
-      if (key === "r") {
-        setLogs([]);
-        return;
-      }
-    };
+  const interval = setInterval(() => {
+    fetchLogs();
+  }, 2000);
 
-    window.addEventListener("keydown", handleKey);
+  const handleKey = (e: KeyboardEvent) => {
+    const key = e.key.toLowerCase();
 
-    return () => {
-      window.removeEventListener("keydown", handleKey);
-    };
-  }, [logs.length]);
+    if (key === "r") {
+      setLogs([]);
+    }
+  };
+
+  window.addEventListener("keydown", handleKey);
+
+  return () => {
+    clearInterval(interval);
+    window.removeEventListener("keydown", handleKey);
+  };
+}, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 p-8">
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold text-gray-900">
           Live Scanner
         </h1>
 
-        <p className="text-gray-500 mt-2">
+        <p className="text-gray-600 text-lg mt-2">
           Monitor real-time asset movement
         </p>
 
@@ -92,17 +122,17 @@ export default function AnalyticsPage() {
 
         {/* Table */}
         {logs.length > 0 ? (
-          <div className="overflow-x-auto">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
             <table className="w-full">
               <thead>
-                <tr className="bg-red-500 text-white text-left">
-                  <th className="px-6 py-4 font-semibold">Action</th>
-                  <th className="px-6 py-4 font-semibold">Date</th>
-                  <th className="px-6 py-4 font-semibold">Time</th>
-                  <th className="px-6 py-4 font-semibold">UID</th>
-                  <th className="px-6 py-4 font-semibold">From Room</th>
-                  <th className="px-6 py-4 font-semibold">To Room</th>
-                  <th className="px-6 py-4 font-semibold">Asset Name</th>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900">Action</th>
+                  <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
+                  <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900">Time</th>
+                  <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900">UID</th>
+                  <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900">From Room</th>
+                  <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900">To Room</th>
+                  <th className="px-8 py-4 text-left text-sm font-semibold text-gray-900">Asset Name</th>
                 </tr>
               </thead>
 
@@ -110,35 +140,41 @@ export default function AnalyticsPage() {
                 {logs.map((log, index) => (
                   <tr
                     key={index}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-lg text-sm font-semibold text-white bg-green-500">
-                        ENTER
+                    <td className="px-8 py-5">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium text-white ${
+                          log.action === "ENTER"
+                            ? "bg-green-600"
+                            : "bg-red-600"
+                        }`}
+                      >
+                        {log.action}
                       </span>
                     </td>
 
-                    <td className="px-6 py-4 text-gray-700">
-                      {log.date}
+                    <td className="px-8 py-5 text-gray-700">
+                      {new Date(log.createdAt).toLocaleDateString("en-GB")}
                     </td>
 
-                    <td className="px-6 py-4 text-gray-700">
+                    <td className="px-8 py-5 text-gray-700">
                       {log.time}
                     </td>
 
-                    <td className="px-6 py-4 font-medium text-gray-900">
+                    <td className="px-8 py-5 font-medium text-gray-900">
                       {log.uid}
                     </td>
 
-                    <td className="px-6 py-4 text-gray-700">
+                    <td className="px-8 py-5 text-gray-700">
                       {log.fromRoom}
                     </td>
 
-                    <td className="px-6 py-4 text-gray-700">
+                    <td className="px-8 py-5 text-gray-700">
                       {log.toRoom}
                     </td>
 
-                    <td className="px-6 py-4 font-medium text-gray-900">
+                    <td className="px-8 py-5 font-medium text-gray-900">
                       {log.assetName}
                     </td>
                   </tr>

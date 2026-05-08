@@ -326,6 +326,7 @@ export default function RegisterAssetPage() {
                   id="dateRegistered"
                   value={formData.dateRegistered}
                   onChange={handleInputChange}
+                  max={new Date().toISOString().split("T")[0]} //Limiting Date Pickers to Current Dates 
                   required
                   helperText="When the asset was registered"
                   icon={
@@ -349,6 +350,7 @@ export default function RegisterAssetPage() {
                   id="dateRemoved"
                   value={formData.dateRemoved}
                   onChange={handleInputChange}
+                  max={new Date().toISOString().split("T")[0]} //Limiting Date Pickers to Current Date 
                   helperText="Optional - when asset was removed"
                   icon={
                     <svg

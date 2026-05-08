@@ -72,8 +72,8 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-md">
-      <Card>
-        <CardBody>
+      <Card className="overflow-hidden border border-slate-800 bg-slate-950/95 shadow-[0_30px_90px_-50px_rgba(15,23,42,0.9)]">
+        <CardBody className="px-10 py-10 bg-slate-950">
           {/* Logo Section */}
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl flex items-center justify-center">
@@ -95,17 +95,17 @@ export default function LoginPage() {
 
           {/* Title */}
           <div className="space-y-2 text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">
-              SDCA Asset Management System
+            <h1 className="text-3xl font-bold text-slate-100">
+              SDCA Asset Management
             </h1>
-            <p className="text-gray-500 text-sm">
-              Sign in using your school email
+            <p className="text-slate-400 text-sm">
+              Secure sign in for staff and administrators
             </p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+            <div className="bg-rose-500/10 border border-rose-400/40 text-rose-200 px-4 py-3 rounded-2xl text-sm mb-4">
               {error}
             </div>
           )}
@@ -123,8 +123,10 @@ export default function LoginPage() {
                 setError("");
               }}
               required
+              labelClassName="!text-slate-100"
+              className="bg-slate-900/80 text-slate-100 border-slate-700 placeholder:text-slate-500"
               icon={
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                   <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
@@ -134,9 +136,9 @@ export default function LoginPage() {
             <div className="relative">
               <label
                 htmlFor="password"
-                className="text-sm font-semibold text-gray-900 block mb-2"
+                className="text-sm font-semibold text-slate-100 block mb-2"
               >
-                Password <span className="text-red-500">*</span>
+                Password <span className="text-primary-400">*</span>
               </label>
 
               <div className="relative">
@@ -159,7 +161,7 @@ export default function LoginPage() {
                     setPassword(e.target.value);
                     setError("");
                   }}
-                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full pl-12 pr-12 py-3 border border-slate-700 bg-slate-900/90 text-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
                 />
 
                 <button
@@ -190,18 +192,22 @@ export default function LoginPage() {
             </div>
 
             {/* Login Button */}
-            <Button type="submit" loading={loading} className="w-full">
+            <Button
+              type="submit"
+              loading={loading}
+              className="w-full rounded-2xl bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white shadow-lg shadow-primary-500/20"
+            >
               Login
             </Button>
           </form>
 
           {/* Sign Up Link */}
           <div className="text-center mt-6">
-            <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{" "}
+            <p className="text-sm text-slate-400">
+              Don&apos;t have an account?{' '}
               <Link
                 href="/register"
-                className="text-primary-500 hover:text-primary-600 font-semibold"
+                className="text-primary-300 hover:text-primary-100 font-semibold"
               >
                 Sign Up
               </Link>
@@ -210,8 +216,8 @@ export default function LoginPage() {
         </CardBody>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-400">
+        <div className="px-6 py-4 border-t border-slate-800 text-center bg-slate-950/95">
+          <p className="text-xs text-slate-500">
             © 2026 SDCA Asset Management System
           </p>
         </div>
