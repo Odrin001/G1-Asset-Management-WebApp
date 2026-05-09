@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardBody, CardHeader, Input, Select, Textarea, Button } from "@/components";
+import { validatePositiveInteger } from "@/lib/utils";
 
 export default function RegisterAssetPage() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function RegisterAssetPage() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
@@ -78,6 +79,11 @@ export default function RegisterAssetPage() {
       setIsLoading(false);
       return;
     }
+    if (!validatePositiveInteger(formData.quantity)) {
+      setError("Quantity must be a positive whole number");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/rfid/register", {
@@ -90,7 +96,7 @@ export default function RegisterAssetPage() {
           assetName: formData.name,
           category: formData.category,
           currentRoom: formData.location,
-          quantity: parseInt(formData.quantity) || 1,
+          quantity: Number.parseInt(formData.quantity) || 1,
           assetStatus: formData.assetStatus,
           condition: formData.condition,
           description: formData.description || undefined,
@@ -270,6 +276,7 @@ export default function RegisterAssetPage() {
                   placeholder="1"
                   value={formData.quantity}
                   onChange={handleInputChange}
+                  min="1"
                   helperText="Number of items"
                   icon={
                     <svg

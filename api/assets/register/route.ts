@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectToDatabase from "@/lib/mongodb";
 import Asset from "@/models/Asset";
+import { validatePositiveInteger } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +26,13 @@ export async function POST(request: NextRequest) {
     if (!name || !category || !location || !dateRegistered || !assetType || !assetStatus || !condition) {
       return NextResponse.json(
         { message: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    if (quantity !== undefined && quantity !== null && !validatePositiveInteger(quantity)) {
+      return NextResponse.json(
+        { message: "Quantity must be a positive whole number" },
         { status: 400 }
       );
     }

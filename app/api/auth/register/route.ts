@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
+import { validateFullName, validateSDCAEmail } from "@/lib/utils";
 
 const UserSchema = new mongoose.Schema({
   fullName: String,
@@ -46,9 +47,33 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!email.endsWith("@sdca.edu.ph")) {
+    if (!validateFullName(fullName)) {
       return NextResponse.json(
-        { message: "Use SDCA email only" },
+        { message: "Full name contains invalid characters" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    if (!validateSDCAEmail(email)) {
+      return NextResponse.json(
+        { message: "Use a valid SDCA email address" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    if (typeof password !== "string" || password.length < 6) {
+      return NextResponse.json(
+        { message: "Password must be at least 6 characters" },
         {
           status: 400,
           headers: {
@@ -92,7 +117,8 @@ export async function POST(req: Request) {
         },
       }
     );
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error(error);
     return NextResponse.json(
       { message: "Server error" },
       {

@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { validateSDCAEmail } from "@/lib/utils";
-import { Card, CardBody } from "@/components";
-import { Input } from "@/components";
-import { Button } from "@/components";
+import { Card, CardBody, Input, Button } from "@/components";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -13,7 +11,7 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);

@@ -67,5 +67,21 @@ export const assetUtils = {
  * Validate email format for SDCA domain
  */
 export const validateSDCAEmail = (email: string): boolean => {
-  return email.toLowerCase().endsWith("@sdca.edu.ph");
+  return /^[^\s@]+@sdca\.edu\.ph$/i.test(email.trim());
+};
+
+/**
+ * Validate full name fields to prevent numbers and invalid special characters.
+ */
+export const validateFullName = (fullName: string): boolean => {
+  const normalized = fullName.trim();
+  return normalized.length >= 2 && /^[A-Za-zÀ-ÖØ-öø-ÿ'’\- ]+$/.test(normalized);
+};
+
+/**
+ * Validate a positive whole number for quantity-like fields.
+ */
+export const validatePositiveInteger = (value: string | number): boolean => {
+  const normalized = String(value).trim();
+  return /^[1-9]\d*$/.test(normalized);
 };

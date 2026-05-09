@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { validatePositiveInteger } from "@/lib/utils";
 
 import RFIDTag from "@/models/RFIDTag";
 
@@ -14,6 +15,13 @@ export async function POST(req: Request) {
     if (!uid || !assetName) {
       return NextResponse.json(
         { message: "UID and asset name are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!validatePositiveInteger(quantity)) {
+      return NextResponse.json(
+        { message: "Quantity must be a positive whole number" },
         { status: 400 }
       );
     }

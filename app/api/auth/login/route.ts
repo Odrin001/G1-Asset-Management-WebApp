@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
+import { validateSDCAEmail } from "@/lib/utils";
 
 const UserSchema = new mongoose.Schema({
   fullName: String,
@@ -33,6 +34,18 @@ export async function POST(req: Request) {
     await connectDB();
 
     const { email, password } = await req.json();
+
+    if (!validateSDCAEmail(email)) {
+      return NextResponse.json(
+        { message: "Invalid email format" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
 
     const user = await User.findOne({ email });
 
@@ -78,7 +91,8 @@ export async function POST(req: Request) {
         },
       }
     );
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error(error);
     return NextResponse.json(
       { message: "Server error" },
       {

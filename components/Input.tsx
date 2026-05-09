@@ -16,6 +16,9 @@ interface InputProps {
 
   max?: string;
   min?: string;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
 }
 
 /**
@@ -37,6 +40,9 @@ export function Input({
   labelClassName = "",
   max,
   min,
+  minLength,
+  maxLength,
+  pattern,
 }: Readonly<InputProps>) {
   return (
     <div>
@@ -55,8 +61,11 @@ export function Input({
         placeholder={placeholder}
         value={value || ""}
         onChange={onChange}
-        max={max}   
-        min={min}   
+        max={max}
+        min={min}
+        minLength={minLength}
+        maxLength={maxLength}
+        pattern={pattern}
         className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition ${
           error
             ? "border-red-300 focus:ring-red-500"
