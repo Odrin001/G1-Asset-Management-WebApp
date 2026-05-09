@@ -69,3 +69,48 @@ export const assetUtils = {
 export const validateSDCAEmail = (email: string): boolean => {
   return email.toLowerCase().endsWith("@sdca.edu.ph");
 };
+
+/**
+ * Authentication utilities
+ */
+export const authUtils = {
+  /**
+   * Check if user is authenticated
+   */
+  isAuthenticated: (): boolean => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const user = localStorage.getItem("user");
+      return user ? true : false;
+    } catch (error) {
+      console.error("Failed to check authentication:", error);
+      return false;
+    }
+  },
+
+  /**
+   * Get current user data
+   */
+  getCurrentUser: () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const user = localStorage.getItem("user");
+      return user ? JSON.parse(user) : null;
+    } catch (error) {
+      console.error("Failed to get current user:", error);
+      return null;
+    }
+  },
+
+  /**
+   * Logout user
+   */
+  logout: (): void => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem("user");
+    } catch (error) {
+      console.error("Failed to logout:", error);
+    }
+  },
+};
