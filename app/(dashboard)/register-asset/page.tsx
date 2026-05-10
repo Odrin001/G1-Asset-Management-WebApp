@@ -244,24 +244,33 @@ export default function RegisterAssetPage() {
               />
 
               <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Category"
-                  type="text"
-                  id="category"
-                  placeholder="e.g., Computers, Desks"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  required
-                  icon={
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM15 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2zM5 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM15 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
-                    </svg>
-                  }
-                />
+                  <Select
+                    label="Category"
+                    id="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    options={[
+                      {
+                        value: "computer hardware",
+                        label: "Computer Hardware",
+                      },
+                      {
+                        value: "furniture",
+                        label: "Furniture",
+                      },
+                    ]}
+                    required
+                    helperText="Select asset category"
+                    icon={
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM15 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2zM5 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM15 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
+                      </svg>
+                    }
+          />
 
                 <Input
                   label="Quantity"

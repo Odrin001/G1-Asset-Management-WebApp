@@ -35,77 +35,75 @@ export default function DashboardPage() {
     }
   };
 
-  useEffect(() => {
-    const fetchAssets = async () => {
-      setIsLoading(true);
+    useEffect(() => {
+      const fetchAssets = async () => {
+        setIsLoading(true);
 
-      try {
-        // Fetch regular assets
-        const assetsRes = await fetch("/api/assets");
-        const assetsData = await assetsRes.json();
+        try {
+          const response = await fetch("/api/rfid/tags");
 
-        // Fetch RFID assets
-        const rfidRes = await fetch("/api/rfid/tags");
-        const rfidData = await rfidRes.json();
+          const data = await response.json();
 
-        let allAssets: Asset[] = [];
+          console.log("RFID TAGS:", data);
 
-        // Regular assets
-        if (assetsRes.ok) {
-          const computerAssets = assetsData.assets.filter(
-            (asset: Asset) =>
-              asset.category.toLowerCase() === "computer hardware"
-          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch RFID tags");
+          }
 
-          allAssets = [...allAssets, ...computerAssets];
+          const formattedAssets = data.rfidTags.map((tag: any) => ({
+            id: String(tag._id),
+
+            name: tag.assetName,
+
+            category: tag.category?.trim().toLowerCase(),
+
+            location: tag.currentRoom,
+
+            dateRegistered:
+              tag.dateRegistered ||
+              new Date(tag.createdAt)
+                .toISOString()
+                .split("T")[0],
+
+            rfidUid: tag.uid,
+
+            quantity: tag.quantity || 1,
+
+            assetStatus: tag.assetStatus || "active",
+
+            condition: tag.condition || "good",
+
+            createdAt: tag.createdAt,
+          }));
+
+          console.log("FORMATTED:", formattedAssets);
+
+          setAssets(formattedAssets);
+        } catch (error) {
+          console.error("Error fetching RFID tags:", error);
+        } finally {
+          setIsLoading(false);
         }
+      };
 
-        // RFID assets
-        if (rfidRes.ok) {
-          const rfidAssets: Asset[] = rfidData.rfidTags
-            .filter(
-              (tag: any) => {
-                const category = tag.category?.toLowerCase();
-                return category === "computer hardware" || category === "furniture";
-              }
-            )
-            .map((tag: any) => ({
-              id: tag._id.toString(),
-              name: tag.assetName,
-              category: tag.category,
-              location: tag.currentRoom,
-              dateRegistered: tag.dateRegistered || tag.createdAt.split("T")[0],
-              rfidUid: tag.uid,
-              assetType: tag.category?.toLowerCase() === "furniture" ? "furniture" : "computer hardware",
-              quantity: tag.quantity || 1,
-              assetStatus: tag.assetStatus || "active",
-              condition: tag.condition || "good",
-              createdAt: tag.createdAt,
-            }));
+      fetchAssets();
 
-          allAssets = [...allAssets, ...rfidAssets];
-        }
+      const handleSearchUpdate = (e: CustomEvent) => {
+        setSearchQuery(e.detail);
+      };
 
-        setAssets(allAssets);
-      } catch (error) {
-        console.error("Error fetching assets:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      window.addEventListener(
+        "searchUpdate" as keyof WindowEventMap,
+        handleSearchUpdate as EventListener
+      );
 
-    fetchAssets();
-
-    // Listen for search updates from layout
-    const handleSearchUpdate = (e: CustomEvent) => {
-      setSearchQuery(e.detail);
-    };
-    window.addEventListener("searchUpdate" as keyof WindowEventMap, handleSearchUpdate as EventListener);
-    
-    return () => {
-      window.removeEventListener("searchUpdate" as keyof WindowEventMap, handleSearchUpdate as EventListener);
-    };
-  }, []);
+      return () => {
+        window.removeEventListener(
+          "searchUpdate" as keyof WindowEventMap,
+          handleSearchUpdate as EventListener
+        );
+      };
+    }, []);
 
   // Filter assets based on search query and category
   const filteredAssets = assets.filter((asset) => {
@@ -320,49 +318,35 @@ export default function DashboardPage() {
                           ) {
                             try {
                               // Determine if this is an RFID tag or regular asset
-                              const isRfidTag = !!asset.rfidUid;
-                              const deleteUrl = isRfidTag
-                                ? `/api/rfid/tags/${asset.id}`
-                                : `/api/assets/${asset.id}`;
+                                const res = await fetch(`/api/rfid/tags/${asset.id}`, {
+                                  method: "DELETE",
+                                });
 
-                              const res = await fetch(deleteUrl, {
-                                method: "DELETE",
-                              });
-                              if (res.ok) {
-                                // Refresh assets
-                                const assetsRes = await fetch("/api/assets");
-                                const assetsData = await assetsRes.json();
+                                if (res.ok) {
+                                  const refreshed = await fetch("/api/rfid/tags");
+                                  const refreshedData = await refreshed.json();
 
-                                const rfidRes = await fetch("/api/rfid/tags");
-                                const rfidData = await rfidRes.json();
-
-                                let allAssets: Asset[] = [];
-
-                                if (assetsRes.ok) {
-                                  allAssets = [...allAssets, ...assetsData.assets];
-                                }
-
-                                if (rfidRes.ok) {
-                                  const rfidAssets: Asset[] = rfidData.rfidTags.map((tag: any) => ({
-                                    id: tag._id.toString(),
+                                  const updatedAssets = refreshedData.rfidTags.map((tag: any) => ({
+                                    id: String(tag._id),
                                     name: tag.assetName,
-                                    category: tag.category || "Computer Hardware",
+                                    category: tag.category?.trim().toLowerCase(),
                                     location: tag.currentRoom,
-                                    dateRegistered: tag.dateRegistered || tag.createdAt.split('T')[0],
+                                    dateRegistered:
+                                      tag.dateRegistered ||
+                                      new Date(tag.createdAt)
+                                        .toISOString()
+                                        .split("T")[0],
                                     rfidUid: tag.uid,
-                                    assetType: tag.category?.toLowerCase() === "furniture" ? "furniture" : "computer",
                                     quantity: tag.quantity || 1,
                                     assetStatus: tag.assetStatus || "active",
                                     condition: tag.condition || "good",
                                     createdAt: tag.createdAt,
                                   }));
-                                  allAssets = [...allAssets, ...rfidAssets];
-                                }
 
-                                setAssets(allAssets);
-                              } else {
-                                alert("Failed to delete asset");
-                              }
+                                  setAssets(updatedAssets);
+                                } else {
+                                  alert("Failed to delete asset");
+                                }
                             } catch (error) {
                               console.error("Error deleting asset:", error);
                               alert("Error deleting asset");

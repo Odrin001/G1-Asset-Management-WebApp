@@ -21,56 +21,60 @@ export default function FurniturePage() {
     }
   };
 
-  useEffect(() => {
-    const fetchAssets = async () => {
-      setIsLoading(true);
-      try {
-        // Fetch regular assets
-        const assetsRes = await fetch("/api/assets");
-        const assetsData = await assetsRes.json();
+      useEffect(() => {
+        const fetchAssets = async () => {
+          setIsLoading(true);
 
-        // Fetch RFID tags
-        const rfidRes = await fetch("/api/rfid/tags");
-        const rfidData = await rfidRes.json();
+          try {
+            const response = await fetch("/api/rfid/tags");
 
-        let allAssets: Asset[] = [];
+            const data = await response.json();
 
-        // Process regular assets
-        if (assetsRes.ok) {
-          const furnitureAssets = assetsData.assets.filter(
-            (asset: Asset) => asset.category.toLowerCase() === "furniture"
-          );
-          allAssets = [...allAssets, ...furnitureAssets];
-        }
+            if (!response.ok) {
+              throw new Error("Failed to fetch RFID tags");
+            }
 
-        // Process RFID tags and convert to asset format
-        if (rfidRes.ok) {
-          const rfidAssets: Asset[] = rfidData.rfidTags.map((tag: any) => ({
-            id: tag._id.toString(),
-            name: tag.assetName,
-            category: "Furniture",
-            location: tag.currentRoom,
-            dateRegistered: tag.createdAt.split('T')[0], // Convert to date string
-            rfidUid: tag.uid,
-            assetType: "furniture",
-            quantity: 1,
-            assetStatus: "active",
-            condition: "good",
-            createdAt: tag.createdAt,
-          }));
-          allAssets = [...allAssets, ...rfidAssets];
-        }
+            const furnitureAssets: Asset[] = data.rfidTags
+              .filter(
+                (tag: any) =>
+                  tag.category?.trim().toLowerCase() === "furniture"
+              )
+              .map((tag: any) => ({
+                id: String(tag._id),
 
-        setAssets(allAssets);
-      } catch (error) {
-        console.error("Error fetching assets:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+                name: tag.assetName,
 
-    fetchAssets();
-  }, []);
+                category: tag.category,
+
+                location: tag.currentRoom,
+
+                dateRegistered:
+                  tag.dateRegistered ||
+                  new Date(tag.createdAt)
+                    .toISOString()
+                    .split("T")[0],
+
+                rfidUid: tag.uid,
+
+                quantity: tag.quantity || 1,
+
+                assetStatus: tag.assetStatus || "active",
+
+                condition: tag.condition || "good",
+
+                createdAt: tag.createdAt,
+              }));
+
+            setAssets(furnitureAssets);
+          } catch (error) {
+            console.error("Error fetching furniture:", error);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        fetchAssets();
+      }, []);
 
   return (
     <div className="space-y-6">
@@ -237,51 +241,49 @@ export default function FurniturePage() {
                           ) {
                             try {
                               // Determine if this is an RFID tag or regular asset
-                              const isRfidTag = !!asset.rfidUid;
-                              const deleteUrl = isRfidTag
-                                ? `/api/rfid/tags/${asset.id}`
-                                : `/api/assets/${asset.id}`;
-
-                              const res = await fetch(deleteUrl, {
+                          const res = await fetch(`/api/rfid/tags/${asset.id}`, {
                                 method: "DELETE",
                               });
+
                               if (res.ok) {
-                                // Refresh assets
-                                const assetsRes = await fetch("/api/assets");
-                                const assetsData = await assetsRes.json();
+                                const refreshed = await fetch("/api/rfid/tags");
 
-                                const rfidRes = await fetch("/api/rfid/tags");
-                                const rfidData = await rfidRes.json();
+                                const refreshedData = await refreshed.json();
 
-                                let allAssets: Asset[] = [];
+                                const updatedAssets: Asset[] = refreshedData.rfidTags
+                                  .filter(
+                                    (tag: any) =>
+                                      tag.category?.trim().toLowerCase() === "furniture"
+                                  )
+                                  .map((tag: any) => ({
+                                    id: String(tag._id),
 
-                                if (assetsRes.ok) {
-                                  const furnitureAssets = assetsData.assets.filter(
-                                    (a: Asset) => a.category.toLowerCase() === "furniture"
-                                  );
-                                  allAssets = [...allAssets, ...furnitureAssets];
-                                }
-
-                                if (rfidRes.ok) {
-                                  const rfidAssets: Asset[] = rfidData.rfidTags.map((tag: any) => ({
-                                    id: tag._id.toString(),
                                     name: tag.assetName,
-                                    category: "Furniture",
+
+                                    category: tag.category,
+
                                     location: tag.currentRoom,
-                                    dateRegistered: tag.createdAt.split('T')[0],
+
+                                    dateRegistered:
+                                      tag.dateRegistered ||
+                                      new Date(tag.createdAt)
+                                        .toISOString()
+                                        .split("T")[0],
+
                                     rfidUid: tag.uid,
-                                    assetType: "furniture",
-                                    quantity: 1,
-                                    assetStatus: "active",
-                                    condition: "good",
+
+                                    quantity: tag.quantity || 1,
+
+                                    assetStatus: tag.assetStatus || "active",
+
+                                    condition: tag.condition || "good",
+
                                     createdAt: tag.createdAt,
                                   }));
-                                  allAssets = [...allAssets, ...rfidAssets];
-                                }
 
-                                setAssets(allAssets);
+                                setAssets(updatedAssets);
                               } else {
-                                alert("Failed to delete asset");
+                                alert("Failed to delete furniture");
                               }
                             } catch (error) {
                               console.error("Error deleting asset:", error);
