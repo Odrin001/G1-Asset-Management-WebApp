@@ -31,10 +31,23 @@ export default function RegisterAssetPage() {
     >
   ) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [id]: value,
+      };
+
+      // If dateRegistered changes, clear dateRemoved if it's now invalid
+      if (id === "dateRegistered" && newData.dateRemoved) {
+        const registeredDate = new Date(value);
+        const removedDate = new Date(newData.dateRemoved);
+        if (removedDate < registeredDate) {
+          newData.dateRemoved = "";
+        }
+      }
+
+      return newData;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,6 +81,30 @@ export default function RegisterAssetPage() {
       setIsLoading(false);
       return;
     }
+
+    // Date validation
+    const today = new Date().toISOString().split("T")[0];
+    const registeredDate = new Date(formData.dateRegistered);
+    const removedDate = formData.dateRemoved ? new Date(formData.dateRemoved) : null;
+
+    if (formData.dateRegistered > today) {
+      setError("Date Registered cannot be in the future");
+      setIsLoading(false);
+      return;
+    }
+
+    if (removedDate && removedDate > new Date(today)) {
+      setError("Date Removed cannot be in the future");
+      setIsLoading(false);
+      return;
+    }
+
+    if (removedDate && removedDate < registeredDate) {
+      setError("Date Removed cannot be earlier than Date Registered");
+      setIsLoading(false);
+      return;
+    }
+
     if (!formData.condition) {
       setError("Condition is required");
       setIsLoading(false);
@@ -373,7 +410,8 @@ export default function RegisterAssetPage() {
                   id="dateRemoved"
                   value={formData.dateRemoved}
                   onChange={handleInputChange}
-                  max={new Date().toISOString().split("T")[0]} //Limiting Date Pickers to Current Date 
+                  min={formData.dateRegistered}
+                  max={new Date().toISOString().split("T")[0]}
                   helperText="Optional - when asset was removed"
                   icon={
                     <svg
