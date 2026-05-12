@@ -1,8 +1,8 @@
 "use client";
 
+import { Asset } from "@/lib/types";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Asset } from "@/lib/types";
 
 export default function FurniturePage() {
   const [assets, setAssets] = useState<Asset[]>([]);

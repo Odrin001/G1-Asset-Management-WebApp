@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Button, Card, CardBody, Input } from "@/components";
 import { validateSDCAEmail } from "@/lib/utils";
-import { Card, CardBody, Input, Button } from "@/components";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function RegisterPage() {
   const router = useRouter();
