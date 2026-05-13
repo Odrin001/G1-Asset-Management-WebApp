@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Button, Card, CardBody, Input } from "@/components";
 import { validateSDCAEmail } from "@/lib/utils";
-import { Card, CardBody, Input, Button } from "@/components";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -208,6 +208,7 @@ export default function RegisterPage() {
 
                 <button
                   type="button"
+                  aria-label="Toggle password visibility"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
@@ -260,6 +261,7 @@ export default function RegisterPage() {
 
                 <button
                   type="button"
+                  aria-label="Toggle password visibility"
                   onClick={() =>
                     setShowConfirmPassword(!showConfirmPassword)
                   }

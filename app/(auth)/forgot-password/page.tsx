@@ -1,11 +1,9 @@
 "use client";
 
+import { Button, Card, CardBody, Input } from "@/components";
+import { validateSDCAEmail } from "@/lib/utils";
 import Link from "next/link";
 import { useState } from "react";
-import { validateSDCAEmail } from "@/lib/utils";
-import { Card, CardBody } from "@/components";
-import { Input } from "@/components";
-import { Button } from "@/components";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");

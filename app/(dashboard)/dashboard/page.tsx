@@ -300,7 +300,9 @@ export default function DashboardPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm flex gap-2">
-                      <button className="p-2 text-primary-600 hover:bg-primary-50 rounded transition">
+                      <button 
+                      aria-label="Edit asset"
+                      className="p-2 text-primary-600 hover:bg-primary-50 rounded transition">
                         <svg
                           className="w-4 h-4"
                           fill="currentColor"
@@ -310,6 +312,7 @@ export default function DashboardPage() {
                         </svg>
                       </button>
                       <button
+                        aria-label="Delete asset"
                         onClick={async () => {
                           if (
                             confirm(
