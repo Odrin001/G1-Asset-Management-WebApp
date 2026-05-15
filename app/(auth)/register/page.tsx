@@ -15,43 +15,69 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const validateForm = () => {
+    const emailValue = email.trim();
+    const isEmailValid =
+      Boolean(emailValue) &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue) &&
+      validateSDCAEmail(emailValue);
+
+    const fullNameError = fullName.trim() ? "" : "Full name is required";
+
+    let emailError = "";
+    if (!emailValue) {
+      emailError = "Email is required";
+    } else if (!isEmailValid) {
+      emailError = "Enter a valid email";
+    }
+
+    const passwordError =
+      password.length >= 8 ? "" : "Password must be at least 8 characters";
+
+    let confirmPasswordError = "";
+    if (!confirmPassword.trim()) {
+      confirmPasswordError = "Confirm password is required";
+    } else if (password !== confirmPassword) {
+      confirmPasswordError = "Passwords do not match";
+    }
+
+    const nextErrors = {
+      fullName: fullNameError,
+      email: emailError,
+      password: passwordError,
+      confirmPassword: confirmPasswordError,
+    };
+
+    setErrors(nextErrors);
+    return !Object.values(nextErrors).some(Boolean);
+  };
+
+  const clearFieldError = (field: keyof typeof errors) => {
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+    if (serverError) {
+      setServerError("");
+    }
+  };
 
   const handleSubmit = async (
     e: React.SyntheticEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
-    setError("");
+    setServerError("");
     setLoading(true);
 
-    // Validation
-    if (!fullName.trim()) {
-      setError("Full name is required");
-      setLoading(false);
-      return;
-    }
-
-    if (!email.trim()) {
-      setError("Email is required");
-      setLoading(false);
-      return;
-    }
-
-    if (!validateSDCAEmail(email)) {
-      setError("Email must end with @sdca.edu.ph");
-      setLoading(false);
-      return;
-    }
-
-    if (!password.trim() || password.length < 6) {
-      setError("Password must be at least 6 characters");
-      setLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+    if (!validateForm()) {
       setLoading(false);
       return;
     }
@@ -72,21 +98,14 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Registration failed");
+        setServerError(data.message || "Registration failed");
         setLoading(false);
         return;
       }
 
-      alert("Account created successfully! Please sign in.");
-
-      setFullName("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-
       router.push("/login");
-    } catch (err) {
-      setError("Cannot connect to server");
+    } catch {
+      setServerError("Cannot connect to server");
     } finally {
       setLoading(false);
     }
@@ -126,9 +145,9 @@ export default function RegisterPage() {
           </div>
 
           {/* Error Message */}
-          {error && (
+          {serverError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
-              {error}
+              {serverError}
             </div>
           )}
 
@@ -142,9 +161,10 @@ export default function RegisterPage() {
               value={fullName}
               onChange={(e) => {
                 setFullName(e.target.value);
-                setError("");
+                clearFieldError("fullName");
               }}
               required
+              error={errors.fullName}
               icon={
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -164,9 +184,10 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                setError("");
+                clearFieldError("email");
               }}
               required
+              error={errors.email}
               icon={
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
@@ -197,11 +218,11 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
-                  placeholder="Create a password (min 6 characters)"
+                  placeholder="Create a password (min 8 characters)"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    setError("");
+                    clearFieldError("password");
                   }}
                   className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
@@ -222,9 +243,15 @@ export default function RegisterPage() {
                 </button>
               </div>
 
-              <p className="text-xs text-gray-500 mt-1">
-                Must be at least 6 characters long
-              </p>
+              {errors.password ? (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.password}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500 mt-1">
+                  Must be at least 8 characters long
+                </p>
+              )}
             </div>
 
             <div>
@@ -253,7 +280,7 @@ export default function RegisterPage() {
                   value={confirmPassword}
                   onChange={(e) => {
                     setConfirmPassword(e.target.value);
-                    setError("");
+                    clearFieldError("confirmPassword");
                   }}
                   className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
@@ -275,6 +302,11 @@ export default function RegisterPage() {
                   </svg>
                 </button>
               </div>
+              {errors.confirmPassword && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.confirmPassword}
+                </p>
+              )}
             </div>
 
             {/* Create Account Button */}
