@@ -35,6 +35,7 @@ export async function POST(req: Request) {
 
     const { fullName, email, password } = await req.json();
 
+    // Validate all fields are present
     if (!fullName || !email || !password) {
       return NextResponse.json(
         { message: "All fields are required" },
@@ -47,7 +48,33 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!validateFullName(fullName)) {
+    // Validate full name
+    if (typeof fullName !== 'string') {
+      return NextResponse.json(
+        { message: "Full name must be a string" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    const trimmedFullName = fullName.trim();
+    if (trimmedFullName.length < 2 || trimmedFullName.length > 100) {
+      return NextResponse.json(
+        { message: "Full name must be 2-100 characters long" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    if (!validateFullName(trimmedFullName)) {
       return NextResponse.json(
         { message: "Full name contains invalid characters" },
         {
@@ -59,7 +86,21 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!validateSDCAEmail(email)) {
+    // Validate email
+    if (typeof email !== 'string') {
+      return NextResponse.json(
+        { message: "Email must be a string" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!validateSDCAEmail(trimmedEmail)) {
       return NextResponse.json(
         { message: "Use a valid SDCA email address" },
         {
@@ -71,7 +112,20 @@ export async function POST(req: Request) {
       );
     }
 
-    if (typeof password !== "string" || password.length < 6) {
+    // Validate password
+    if (typeof password !== "string") {
+      return NextResponse.json(
+        { message: "Password must be a string" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    if (password.length < 6) {
       return NextResponse.json(
         { message: "Password must be at least 6 characters" },
         {
@@ -83,7 +137,20 @@ export async function POST(req: Request) {
       );
     }
 
-    const existingUser = await User.findOne({ email });
+    if (password.length > 100) {
+      return NextResponse.json(
+        { message: "Password is too long" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    // Check for existing user
+    const existingUser = await User.findOne({ email: trimmedEmail });
 
     if (existingUser) {
       return NextResponse.json(
@@ -97,11 +164,12 @@ export async function POST(req: Request) {
       );
     }
 
+    // Hash password and create user
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await User.create({
-      fullName,
-      email,
+      fullName: trimmedFullName,
+      email: trimmedEmail,
       password: hashedPassword,
       role: "user",
     });

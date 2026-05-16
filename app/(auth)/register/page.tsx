@@ -25,9 +25,21 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
 
-    // Validation
+    // Validate full name
     if (!fullName.trim()) {
       setError("Full name is required");
+      setLoading(false);
+      return;
+    }
+
+    if (fullName.trim().length < 2) {
+      setError("Full name must be at least 2 characters");
+      setLoading(false);
+      return;
+    }
+
+    if (fullName.trim().length > 100) {
+      setError("Full name must not exceed 100 characters");
       setLoading(false);
       return;
     }
@@ -38,6 +50,7 @@ export default function RegisterPage() {
       return;
     }
 
+    // Validate email
     if (!email.trim()) {
       setError("Email is required");
       setLoading(false);
@@ -50,8 +63,28 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!password.trim() || password.length < 6) {
+    // Validate password
+    if (!password.trim()) {
+      setError("Password is required");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length > 100) {
+      setError("Password is too long");
+      setLoading(false);
+      return;
+    }
+
+    // Validate password confirmation
+    if (!confirmPassword.trim()) {
+      setError("Please confirm your password");
       setLoading(false);
       return;
     }
@@ -69,8 +102,8 @@ export default function RegisterPage() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          fullName,
-          email,
+          fullName: fullName.trim(),
+          email: email.trim().toLowerCase(),
           password
         })
       });

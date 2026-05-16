@@ -85,3 +85,70 @@ export const validatePositiveInteger = (value: string | number): boolean => {
   const normalized = String(value).trim();
   return /^[1-9]\d*$/.test(normalized);
 };
+/**
+ * Validate that a value is not empty
+ */
+export const validateRequired = (
+  value: string | number | undefined | null
+): boolean => {
+  if (typeof value === "string") return value.trim().length > 0;
+  if (typeof value === "number") return !isNaN(value) && value > 0;
+
+  return value !== undefined && value !== null;
+};
+
+/**
+ * Validate date format
+ */
+export const validateDate = (value: string): boolean => {
+  return !isNaN(Date.parse(value));
+};
+
+/**
+ * Validate asset form data
+ */
+export const validateAssetForm = (formData: {
+  assetType: string;
+  name: string;
+  category: string;
+  quantity: string;
+  location: string;
+  dateRegistered: string;
+  dateRemoved: string;
+  condition: string;
+  rfidUid: string;
+  description: string;
+}): string | null => {
+  if (!validateRequired(formData.assetType))
+    return "Asset Type is required";
+
+  if (!validateRequired(formData.name))
+    return "Asset Name is required";
+
+  if (!validateRequired(formData.category))
+    return "Category is required";
+
+  if (!validateRequired(formData.location))
+    return "Location is required";
+
+  if (!validatePositiveInteger(formData.quantity))
+    return "Quantity must be a positive whole number";
+
+  if (!validateDate(formData.dateRegistered))
+    return "Date Registered is invalid";
+
+  if (
+    formData.dateRemoved &&
+    !validateDate(formData.dateRemoved)
+  ) {
+    return "Date Removed is invalid";
+  }
+
+  if (!validateRequired(formData.condition))
+    return "Condition is required";
+
+  if (!validateRequired(formData.rfidUid))
+    return "RFID UID is required";
+
+  return null;
+};

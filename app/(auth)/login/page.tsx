@@ -34,8 +34,21 @@ export default function LoginPage() {
       return;
     }
 
+    // Validate password
     if (!password.trim()) {
       setError("Password is required");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length > 100) {
+      setError("Password is too long");
       setLoading(false);
       return;
     }
@@ -47,7 +60,7 @@ export default function LoginPage() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          email,
+          email: email.trim().toLowerCase(),
           password
         })
       });
@@ -63,7 +76,8 @@ export default function LoginPage() {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       router.push("/dashboard");
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error("Login error:", error);
       setError("Cannot connect to server");
     } finally {
       setLoading(false);

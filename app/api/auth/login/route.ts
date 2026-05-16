@@ -35,7 +35,23 @@ export async function POST(req: Request) {
 
     const { email, password } = await req.json();
 
-    if (!validateSDCAEmail(email)) {
+    // Validate email presence
+    if (!email || typeof email !== 'string') {
+      return NextResponse.json(
+        { message: "Email is required" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Validate email format
+    if (!validateSDCAEmail(trimmedEmail)) {
       return NextResponse.json(
         { message: "Invalid email format" },
         {
@@ -47,7 +63,32 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = await User.findOne({ email });
+    // Validate password presence
+    if (!password || typeof password !== 'string') {
+      return NextResponse.json(
+        { message: "Password is required" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    if (password.length < 6 || password.length > 100) {
+      return NextResponse.json(
+        { message: "Invalid credentials" },
+        {
+          status: 401,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    const user = await User.findOne({ email: trimmedEmail });
 
     if (!user) {
       return NextResponse.json(
