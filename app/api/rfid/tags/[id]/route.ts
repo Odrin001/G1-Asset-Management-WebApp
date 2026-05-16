@@ -1,31 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectToDatabase from "@/lib/mongodb";
-import Asset from "@/models/Asset";
+import { connectDB } from "@/lib/mongodb";
+import RFIDTag from "@/models/RFIDTag";
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await connectToDatabase();
+    await connectDB();
 
-    const { id } = params;
+    const deletedTag = await RFIDTag.findByIdAndDelete(
+      params.id
+    );
 
-    const deletedAsset = await Asset.findByIdAndDelete(id);
-
-    if (!deletedAsset) {
+    if (!deletedTag) {
       return NextResponse.json(
-        { message: "Asset not found" },
+        { message: "RFID tag not found" },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { message: "Asset deleted successfully" },
+      { message: "RFID tag deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error deleting asset:", error);
+    console.error("Error deleting RFID tag:", error);
+
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }
