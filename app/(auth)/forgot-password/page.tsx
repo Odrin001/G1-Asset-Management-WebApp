@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type SyntheticEvent } from "react";
 import { validateSDCAEmail } from "@/lib/utils";
-import { Card, CardBody } from "@/components";
-import { Input } from "@/components";
-import { Button } from "@/components";
+import { Card, CardBody, Input, Button } from "@/components";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -13,7 +11,7 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -41,8 +39,8 @@ export default function ForgotPasswordPage() {
   if (success) {
     return (
       <div className="w-full max-w-md">
-        <Card>
-          <CardBody>
+        <Card className="overflow-hidden border border-slate-800 bg-slate-950/95 shadow-[0_30px_90px_-50px_rgba(15,23,42,0.9)]">
+          <CardBody className="px-10 py-10 bg-slate-950">
             {/* Success Icon */}
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
@@ -88,8 +86,8 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="w-full max-w-md">
-      <Card>
-        <CardBody>
+      <Card className="overflow-hidden border border-slate-800 bg-slate-950/95 shadow-[0_30px_90px_-50px_rgba(15,23,42,0.9)]">
+        <CardBody className="px-10 py-10 bg-slate-950">
           {/* Logo Section */}
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl flex items-center justify-center">
@@ -111,10 +109,10 @@ export default function ForgotPasswordPage() {
 
           {/* Title */}
           <div className="space-y-2 text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-slate-100">
               Forgot Password
             </h1>
-            <p className="text-gray-500 text-sm">
+            <p className="text-slate-400 text-sm">
               Enter your registered school email to receive a verification code.
             </p>
           </div>
@@ -139,6 +137,8 @@ export default function ForgotPasswordPage() {
                 setError("");
               }}
               required
+              labelClassName="!text-slate-100"
+              className="bg-slate-900/80 text-slate-100 border-slate-700 placeholder:text-slate-500"
               icon={
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
@@ -148,7 +148,11 @@ export default function ForgotPasswordPage() {
             />
 
             {/* Send OTP Button */}
-            <Button type="submit" loading={loading} className="w-full">
+            <Button
+              type="submit"
+              loading={loading}
+              className="w-full rounded-2xl bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white shadow-lg shadow-primary-500/20"
+            >
               Send OTP
             </Button>
           </form>
@@ -178,8 +182,8 @@ export default function ForgotPasswordPage() {
         </CardBody>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-400">
+        <div className="px-6 py-4 border-t border-slate-800 text-center bg-slate-950/95">
+          <p className="text-xs text-slate-500">
             © 2026 SDCA Asset Management System
           </p>
         </div>
