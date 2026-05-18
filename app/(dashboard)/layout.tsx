@@ -12,6 +12,7 @@ export default function DashboardLayout({
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Function to check if a route is active
   const isActive = (href: string) => {
@@ -51,9 +52,10 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="w-64 bg-slate-800 border-r border-slate-700 text-white flex flex-col shadow-xl">
+    <div className="relative flex h-screen bg-gray-50">
+      <div
+        className={`fixed inset-y-0 left-0 z-30 w-64 transform overflow-y-auto bg-slate-800 border-r border-slate-700 text-white flex flex-col shadow-xl transition-transform duration-300 md:static md:translate-x-0 md:shadow-none ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+      >
         {/* Logo Section */}
         <div className="p-6 flex items-center gap-3 border-b border-slate-700">
           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
@@ -84,6 +86,7 @@ export default function DashboardLayout({
           <Link
             href="/dashboard"
             className={getNavLinkClasses("/dashboard")}
+            onClick={() => setSidebarOpen(false)}
           >
             <svg
               className="w-5 h-5 flex-shrink-0"
@@ -103,6 +106,7 @@ export default function DashboardLayout({
           <Link
             href="/furniture"
             className={getNavLinkClasses("/furniture")}
+            onClick={() => setSidebarOpen(false)}
           >
             <svg
               className="w-5 h-5 flex-shrink-0"
@@ -122,22 +126,23 @@ export default function DashboardLayout({
 
         {/* Footer */}
         <div className="p-4 border-t border-slate-700 space-y-3">
-            <Link
-              href="/analytics"
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition-all shadow-sm"
+          <Link
+            href="/analytics"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition-all shadow-sm"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <svg
+              className="w-5 h-5 flex-shrink-0"
+              fill="currentColor"
+              viewBox="0 0 20 20"
             >
-              <svg
-                className="w-5 h-5 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5z" />
-                <path d="M8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7z" />
-                <path d="M14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-              </svg>
+              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5z" />
+              <path d="M8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7z" />
+              <path d="M14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+            </svg>
 
-              <span>Analytics</span>
-            </Link>
+            <span>Analytics</span>
+          </Link>
 
           <button className="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white py-2 rounded-lg font-medium hover:border hover:border-slate-600 transition-all">
             Contact Support
@@ -145,11 +150,37 @@ export default function DashboardLayout({
         </div>
       </div>
 
-      {/* Main Content */}
+      <button
+        type="button"
+        className={`fixed inset-0 z-20 bg-black/30 transition-opacity duration-300 md:hidden ${sidebarOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
+        onClick={() => setSidebarOpen(false)}
+        aria-label="Close sidebar"
+      />
+
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
         <div className="bg-red-600 border-b border-red-700 px-8 py-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3 text-white text-sm font-medium">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="inline-flex items-center justify-center rounded-lg bg-white/10 p-2 text-white shadow-sm ring-1 ring-white/20 hover:bg-white/20 md:hidden"
+              aria-label="Open sidebar"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
             <svg
               className="w-5 h-5"
               fill="currentColor"
