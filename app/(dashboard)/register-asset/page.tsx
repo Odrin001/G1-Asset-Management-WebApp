@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { assetUtils } from "@/lib/utils";
 import { Card, CardBody, CardHeader, Input, Select, Textarea, Button } from "@/components";
 
 export default function RegisterAssetPage() {
@@ -38,7 +37,7 @@ export default function RegisterAssetPage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
@@ -74,35 +73,50 @@ export default function RegisterAssetPage() {
       setIsLoading(false);
       return;
     }
+    if (!formData.rfidUid.trim()) {
+      setError("RFID UID is required");
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      // Save to localStorage
-      assetUtils.saveAsset({
-        name: formData.name,
-        category: formData.category,
-        location: formData.location,
-        dateRegistered: formData.dateRegistered,
-        dateRemoved: formData.dateRemoved || undefined,
-        rfidUid: formData.rfidUid || undefined,
-        assetType: formData.assetType,
-        quantity: parseInt(formData.quantity) || 1,
-        assetStatus: formData.assetStatus,
-        condition: formData.condition,
-        description: formData.description || undefined,
+      const res = await fetch("/api/rfid/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: formData.rfidUid,
+          assetName: formData.name,
+          category: formData.category,
+          currentRoom: formData.location,
+          quantity: parseInt(formData.quantity) || 1,
+          assetStatus: formData.assetStatus,
+          condition: formData.condition,
+          description: formData.description || undefined,
+        }),
       });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Failed to register asset");
+        setIsLoading(false);
+        return;
+      }
 
       // Reset form
       if (formRef.current) {
         formRef.current.reset();
       }
 
-      // Redirect to dashboard
+      // Redirect to furniture page to see the newly registered asset
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/furniture");
       }, 500);
     } catch (err) {
       setError("Failed to register asset. Please try again.");
-      console.error("Error saving asset:", err);
+      console.error("Error registering asset:", err);
       setIsLoading(false);
     }
   };
@@ -230,24 +244,33 @@ export default function RegisterAssetPage() {
               />
 
               <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Category"
-                  type="text"
-                  id="category"
-                  placeholder="e.g., Computers, Desks"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  required
-                  icon={
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM15 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2zM5 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM15 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
-                    </svg>
-                  }
-                />
+                  <Select
+                    label="Category"
+                    id="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    options={[
+                      {
+                        value: "computer hardware",
+                        label: "Computer Hardware",
+                      },
+                      {
+                        value: "furniture",
+                        label: "Furniture",
+                      },
+                    ]}
+                    required
+                    helperText="Select asset category"
+                    icon={
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM15 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2zM5 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM15 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
+                      </svg>
+                    }
+          />
 
                 <Input
                   label="Quantity"
@@ -326,6 +349,7 @@ export default function RegisterAssetPage() {
                   id="dateRegistered"
                   value={formData.dateRegistered}
                   onChange={handleInputChange}
+                  max={new Date().toISOString().split("T")[0]} //Limiting Date Pickers to Current Dates 
                   required
                   helperText="When the asset was registered"
                   icon={
@@ -349,6 +373,7 @@ export default function RegisterAssetPage() {
                   id="dateRemoved"
                   value={formData.dateRemoved}
                   onChange={handleInputChange}
+                  max={new Date().toISOString().split("T")[0]} //Limiting Date Pickers to Current Date 
                   helperText="Optional - when asset was removed"
                   icon={
                     <svg
@@ -440,7 +465,8 @@ export default function RegisterAssetPage() {
                 placeholder="Scan or enter UID"
                 value={formData.rfidUid}
                 onChange={handleInputChange}
-                helperText="Unique identifier for RFID tracking"
+                required
+                helperText="Required - Unique identifier for RFID tracking"
                 icon={
                   <svg
                     className="w-4 h-4"
