@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardBody, CardHeader, Input, Select, Textarea, Button } from "@/components";
+import { toast } from "react-hot-toast";
 
 export default function RegisterAssetPage() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
     assetType: "",
@@ -39,42 +39,41 @@ export default function RegisterAssetPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setIsLoading(true);
 
     // Validate required fields
     if (!formData.assetType.trim()) {
-      setError("Asset Type is required");
+      toast.error("Asset Type is required");
       setIsLoading(false);
       return;
     }
     if (!formData.name.trim()) {
-      setError("Asset Name is required");
+      toast.error("Asset Name is required");
       setIsLoading(false);
       return;
     }
     if (!formData.category.trim()) {
-      setError("Category is required");
+      toast.error("Category is required");
       setIsLoading(false);
       return;
     }
     if (!formData.location.trim()) {
-      setError("Location is required");
+      toast.error("Location is required");
       setIsLoading(false);
       return;
     }
     if (!formData.dateRegistered) {
-      setError("Date Registered is required");
+      toast.error("Date Registered is required");
       setIsLoading(false);
       return;
     }
     if (!formData.condition) {
-      setError("Condition is required");
+      toast.error("Condition is required");
       setIsLoading(false);
       return;
     }
     if (!formData.rfidUid.trim()) {
-      setError("RFID UID is required");
+      toast.error("RFID UID is required");
       setIsLoading(false);
       return;
     }
@@ -100,22 +99,28 @@ export default function RegisterAssetPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Failed to register asset");
+        toast.error(data.message || "Failed to register asset");
         setIsLoading(false);
         return;
       }
+
+      toast.success("Asset registered successfully!");
 
       // Reset form
       if (formRef.current) {
         formRef.current.reset();
       }
 
-      // Redirect to furniture page to see the newly registered asset
+      // Dynamic redirect based on the registered asset type
       setTimeout(() => {
-        router.push("/furniture");
+        if (formData.assetType === "furniture") {
+          router.push("/furniture");
+        } else {
+          router.push("/dashboard");
+        }
       }, 500);
     } catch (err) {
-      setError("Failed to register asset. Please try again.");
+      toast.error("Failed to register asset. Please try again.");
       console.error("Error registering asset:", err);
       setIsLoading(false);
     }
@@ -168,13 +173,6 @@ export default function RegisterAssetPage() {
           <p className="text-gray-500 text-sm mt-1">Add a new asset to the system</p>
         </div>
       </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
-        </div>
-      )}
 
       {/* Form Section */}
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
@@ -244,33 +242,33 @@ export default function RegisterAssetPage() {
               />
 
               <div className="grid grid-cols-2 gap-4">
-                  <Select
-                    label="Category"
-                    id="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    options={[
-                      {
-                        value: "computer hardware",
-                        label: "Computer Hardware",
-                      },
-                      {
-                        value: "furniture",
-                        label: "Furniture",
-                      },
-                    ]}
-                    required
-                    helperText="Select asset category"
-                    icon={
-                      <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM15 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2zM5 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM15 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
-                      </svg>
-                    }
-          />
+                <Select
+                  label="Category"
+                  id="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  options={[
+                    {
+                      value: "computer hardware",
+                      label: "Computer Hardware",
+                    },
+                    {
+                      value: "furniture",
+                      label: "Furniture",
+                    },
+                  ]}
+                  required
+                  helperText="Select asset category"
+                  icon={
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM15 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2zM5 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM15 13a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
+                    </svg>
+                  }
+                />
 
                 <Input
                   label="Quantity"
@@ -349,7 +347,7 @@ export default function RegisterAssetPage() {
                   id="dateRegistered"
                   value={formData.dateRegistered}
                   onChange={handleInputChange}
-                  max={new Date().toISOString().split("T")[0]} //Limiting Date Pickers to Current Dates 
+                  max={new Date().toISOString().split("T")[0]}
                   required
                   helperText="When the asset was registered"
                   icon={
@@ -373,7 +371,7 @@ export default function RegisterAssetPage() {
                   id="dateRemoved"
                   value={formData.dateRemoved}
                   onChange={handleInputChange}
-                  max={new Date().toISOString().split("T")[0]} //Limiting Date Pickers to Current Date 
+                  max={new Date().toISOString().split("T")[0]}
                   helperText="Optional - when asset was removed"
                   icon={
                     <svg

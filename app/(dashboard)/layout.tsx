@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function DashboardLayout({
   children,
@@ -183,13 +184,48 @@ export default function DashboardLayout({
               />
             </form>
             <button
-              onClick={() => {
-                if (confirm("Are you sure you want to sign out?")) {
-                  window.location.href = "/login";
-                }
-              }}
-              className="flex items-center gap-2 px-4 py-2 text-white bg-white/10 hover:bg-white/20 rounded-lg transition-all"
-              title="Sign Out"
+                onClick={() => {
+                  toast(
+                    (t) => (
+                      <div className="flex flex-col gap-3">
+                        <p className="font-medium">
+                          Are you sure you want to sign out?
+                        </p>
+
+                        <div className="flex justify-end gap-2">
+                          <button
+                            className="px-3 py-1 rounded bg-gray-200"
+                            onClick={() => toast.dismiss(t.id)}
+                          >
+                            Cancel
+                          </button>
+
+                          <button
+                            className="px-3 py-1 rounded bg-red-500 text-white"
+                            onClick={() => {
+                              toast.dismiss(t.id);
+
+                              toast.success(
+                                "Signed out successfully!"
+                              );
+
+                              setTimeout(() => {
+                                window.location.href = "/login";
+                              }, 1000);
+                            }}
+                          >
+                            Sign Out
+                          </button>
+                        </div>
+                      </div>
+                    ),
+                    {
+                      duration: 5000,
+                    }
+                  );
+                }}
+                className="flex items-center gap-2 px-4 py-2 text-white bg-white/10 hover:bg-white/20 rounded-lg transition-all"
+                title="Sign Out"
             >
               <svg
                 className="w-5 h-5"

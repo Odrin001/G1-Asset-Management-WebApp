@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Asset } from "@/lib/types";
+import { toast } from "react-hot-toast";
+
 
 export default function FurniturePage() {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -233,65 +235,78 @@ export default function FurniturePage() {
                         </svg>
                       </button>
                       <button
-                        onClick={async () => {
-                          if (
-                            confirm(
-                              "Are you sure you want to delete this asset?"
-                            )
-                          ) {
-                            try {
-                              // Determine if this is an RFID tag or regular asset
-                          const res = await fetch(`/api/rfid/tags/${asset.id}`, {
-                                method: "DELETE",
-                              });
+                            onClick={() => {
+                            toast((t) => (
+                              <div className="flex flex-col gap-3">
+                                <p className="text-sm font-medium">
+                                  Are you sure you want to delete this asset?
+                                </p>
+                                <div className="flex gap-2 justify-end">
+                          <button
+                            className="px-3 py-1 bg-gray-200 rounded"
+                            onClick={() => toast.dismiss(t.id)}
+                          >
+                            Cancel
+                          </button>
 
-                              if (res.ok) {
-                                const refreshed = await fetch("/api/rfid/tags");
+                          <button
+                            className="px-3 py-1 bg-red-500 text-white rounded"
+                            onClick={async () => {
+                              try {
+                                const res = await fetch(`/api/rfid/tags/${asset.id}`, {
+                                  method: "DELETE",
+                                });
 
-                                const refreshedData = await refreshed.json();
+                                if (res.ok) {
+                                  const refreshed = await fetch("/api/rfid/tags");
 
-                                const updatedAssets: Asset[] = refreshedData.rfidTags
-                                  .filter(
-                                    (tag: any) =>
-                                      tag.category?.trim().toLowerCase() === "furniture"
-                                  )
-                                  .map((tag: any) => ({
-                                    id: String(tag._id),
+                                  const refreshedData = await refreshed.json();
 
-                                    name: tag.assetName,
+                                  const updatedAssets: Asset[] =
+                                    refreshedData.rfidTags
+                                      .filter(
+                                        (tag: any) =>
+                                          tag.category?.trim().toLowerCase() ===
+                                          "furniture"
+                                      )
+                                      .map((tag: any) => ({
+                                        id: String(tag._id),
+                                        name: tag.assetName,
+                                        category: tag.category,
+                                        location: tag.currentRoom,
+                                        dateRegistered:
+                                          tag.dateRegistered ||
+                                          new Date(tag.createdAt)
+                                            .toISOString()
+                                            .split("T")[0],
+                                        rfidUid: tag.uid,
+                                        quantity: tag.quantity || 1,
+                                        assetStatus: tag.assetStatus || "active",
+                                        condition: tag.condition || "good",
+                                        createdAt: tag.createdAt,
+                                      }));
 
-                                    category: tag.category,
+                                  setAssets(updatedAssets);
 
-                                    location: tag.currentRoom,
+                                  toast.success("Asset deleted successfully!");
+                                } else {
+                                  toast.error("Failed to delete furniture");
+                                }
+                              } catch (error) {
+                                console.error("Error deleting asset:", error);
 
-                                    dateRegistered:
-                                      tag.dateRegistered ||
-                                      new Date(tag.createdAt)
-                                        .toISOString()
-                                        .split("T")[0],
-
-                                    rfidUid: tag.uid,
-
-                                    quantity: tag.quantity || 1,
-
-                                    assetStatus: tag.assetStatus || "active",
-
-                                    condition: tag.condition || "good",
-
-                                    createdAt: tag.createdAt,
-                                  }));
-
-                                setAssets(updatedAssets);
-                              } else {
-                                alert("Failed to delete furniture");
                               }
-                            } catch (error) {
-                              console.error("Error deleting asset:", error);
-                              alert("Error deleting asset");
-                            }
-                          }
-                        }}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded transition"
+
+                              toast.dismiss(t.id);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ));
+                  }}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded transition"
                       >
                         <svg
                           className="w-4 h-4"

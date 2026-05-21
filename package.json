@@ -15,11 +15,8 @@
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-<<<<<<< HEAD
-    "react-hot-toast": "^2.6.0"
-=======
+    "react-hot-toast": "^2.6.0",
     "serialport": "^13.0.0"
->>>>>>> 8ad91bc1aff8bde2fd02aae19b52c66db5170226
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

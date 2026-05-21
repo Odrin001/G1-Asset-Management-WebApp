@@ -6,6 +6,7 @@ import { validateSDCAEmail } from "@/lib/utils";
 import { Card, CardBody } from "@/components";
 import { Input } from "@/components";
 import { Button } from "@/components";
+import { toast } from "react-hot-toast";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -20,23 +21,27 @@ export default function ForgotPasswordPage() {
 
     // Validation
     if (!email.trim()) {
-      setError("Email is required");
-      setLoading(false);
-      return;
+    const msg = "Email is required";
+    setError(msg);
+    toast.error(msg);
+    setLoading(false);
+    return;
     }
 
-    if (!validateSDCAEmail(email)) {
-      setError("Email must end with @sdca.edu.ph");
-      setLoading(false);
-      return;
-    }
+  if (!validateSDCAEmail(email)) {
+    const msg = "Email must end with @sdca.edu.ph";
+    setError(msg);
+    toast.error(msg);
+    setLoading(false);
+    return;
+  }
 
     // Simulate OTP send
     setTimeout(() => {
-      setSuccess(true);
-      setLoading(false);
-    }, 500);
-  };
+    setSuccess(true);
+    setLoading(false);
+    // COPY AND PASTE THIS LINE BELOW
+    toast.success("OTP Code sent successfully! Please check your inbox."); }, 500);
 
   if (success) {
     return (
@@ -186,4 +191,5 @@ export default function ForgotPasswordPage() {
       </Card>
     </div>
   );
+}
 }
