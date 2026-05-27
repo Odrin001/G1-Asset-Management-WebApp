@@ -8,7 +8,10 @@ export default function DashboardPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [selectedAsset, setSelectedAsset] = useState<any | null>(null);
+  const [editingAsset, setEditingAsset] = useState<any | null>(null);
+  const [toastMessage, setToastMessage] = useState("");
+  
   const getStatusBadgeClass = (status: string): string => {
     switch (status) {
       case "active":
@@ -72,6 +75,8 @@ export default function DashboardPage() {
             assetStatus: tag.assetStatus || "active",
 
             condition: tag.condition || "good",
+
+            description: tag.description || "",
 
             createdAt: tag.createdAt,
           }));
@@ -300,7 +305,34 @@ export default function DashboardPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm flex gap-2">
-                      <button className="p-2 text-primary-600 hover:bg-primary-50 rounded transition">
+                      <button
+                        onClick={() => setSelectedAsset(asset)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                            onClick={() => setEditingAsset(asset)}
+                            className="p-2 text-primary-600 hover:bg-primary-50 rounded transition"
+                          >
                         <svg
                           className="w-4 h-4"
                           fill="currentColor"
@@ -340,6 +372,7 @@ export default function DashboardPage() {
                                     quantity: tag.quantity || 1,
                                     assetStatus: tag.assetStatus || "active",
                                     condition: tag.condition || "good",
+                                    description: tag.description || "",
                                     createdAt: tag.createdAt,
                                   }));
 
@@ -428,6 +461,310 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+      {selectedAsset && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold text-gray-900">
+          Asset Details
+        </h2>
+
+        <button
+          onClick={() => setSelectedAsset(null)}
+          className="text-gray-500 hover:text-gray-700 text-2xl"
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="space-y-4 text-sm">
+        <div>
+          <p className="font-semibold text-gray-700">Asset Name</p>
+          <p className="text-gray-600">{selectedAsset.name}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-700">RFID UID</p>
+          <p className="text-gray-600">{selectedAsset.rfidUid}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-700">Location</p>
+          <p className="text-gray-600">{selectedAsset.location}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-700">Status</p>
+          <p className="text-gray-600">{selectedAsset.assetStatus}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-700">Condition</p>
+          <p className="text-gray-600">{selectedAsset.condition}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-700">Description</p>
+          <p className="text-gray-600">
+            {selectedAsset.description || "No description provided"}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+    {editingAsset && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Edit Asset
+            </h2>
+
+            <button
+              onClick={() => setEditingAsset(null)}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+
+  <div className="space-y-4">
+
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Asset Name
+      </label>
+
+      <input
+        type="text"
+        value={editingAsset.name}
+        onChange={(e) =>
+          setEditingAsset({
+            ...editingAsset,
+            name: e.target.value,
+          })
+        }
+        className="w-full border rounded-lg p-3"
+        placeholder="Asset Name"
+      />
+    </div>
+
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        RFID UID
+      </label>
+
+      <input
+        type="text"
+        value={editingAsset.rfidUid}
+        onChange={(e) =>
+          setEditingAsset({
+            ...editingAsset,
+            rfidUid: e.target.value,
+          })
+        }
+        className="w-full border rounded-lg p-3"
+        placeholder="RFID UID"
+      />
+    </div>
+
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Location
+      </label>
+
+      <input
+        type="text"
+        value={editingAsset.location}
+        onChange={(e) =>
+          setEditingAsset({
+            ...editingAsset,
+            location: e.target.value,
+          })
+        }
+        className="w-full border rounded-lg p-3"
+        placeholder="Location"
+      />
+    </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-gray-700 mb-2">
+      Quantity
+    </label>
+
+    <input
+      type="number"
+      value={editingAsset.quantity}
+      onChange={(e) =>
+        setEditingAsset({
+          ...editingAsset,
+          quantity: Number(e.target.value),
+        })
+      }
+      className="w-full border rounded-lg p-3"
+      placeholder="Quantity"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-gray-700 mb-2">
+      Category
+    </label>
+
+    <select
+      value={editingAsset.category}
+      onChange={(e) =>
+        setEditingAsset({
+          ...editingAsset,
+          category: e.target.value,
+        })
+      }
+      className="w-full border rounded-lg p-3"
+    >
+      <option value="computer hardware">
+        Computer Hardware
+      </option>
+
+      <option value="furniture">
+        Furniture
+      </option>
+    </select>
+  </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-gray-700 mb-2">
+      Asset Status
+    </label>
+
+    <select
+      value={editingAsset.assetStatus}
+      onChange={(e) =>
+        setEditingAsset({
+          ...editingAsset,
+          assetStatus: e.target.value,
+        })
+      }
+      className="w-full border rounded-lg p-3"
+    >
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+      <option value="maintenance">Maintenance</option>
+      <option value="retired">Retired</option>
+    </select>
+  </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-gray-700 mb-2">
+      Condition
+    </label>
+
+    <select
+      value={editingAsset.condition}
+      onChange={(e) =>
+        setEditingAsset({
+          ...editingAsset,
+          condition: e.target.value,
+        })
+      }
+      className="w-full border rounded-lg p-3"
+    >
+      <option value="new">New</option>
+      <option value="good">Good</option>
+      <option value="fair">Fair</option>
+      <option value="poor">Poor</option>
+    </select>
+  </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-gray-700 mb-2">
+      Description
+    </label>
+
+    <textarea
+      value={editingAsset.description}
+      onChange={(e) =>
+        setEditingAsset({
+          ...editingAsset,
+          description: e.target.value,
+        })
+      }
+      className="w-full border rounded-lg p-3"
+      placeholder="Description"
+      rows={4}
+    />
+  </div>
+
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch(
+                    `/api/rfid/tags/${editingAsset.id}`,
+                    {
+                      method: "PUT",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify(editingAsset),
+                    }
+                  );
+
+                  if (res.ok) {
+                    setAssets((prev) =>
+                      prev.map((a) =>
+                        a.id === editingAsset.id
+                          ? editingAsset
+                          : a
+                      )
+                    );
+
+                    setEditingAsset(null);
+
+                    setToastMessage("Asset updated successfully!");
+
+                    setTimeout(() => {
+                      setToastMessage("");
+                    }, 3000);
+                  } else {
+                    alert("Failed to update asset");
+                  }
+                } catch (error) {
+                  console.error(error);
+                  alert("Error updating asset");
+                }
+              }}
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    
+        {toastMessage && (
+      <div className="fixed top-6 right-6 bg-green-600 text-white px-6 py-4 rounded-xl shadow-2xl z-[100] animate-pulse">
+        <div className="flex items-center gap-3">
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+
+          <span className="font-medium">
+            {toastMessage}
+          </span>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

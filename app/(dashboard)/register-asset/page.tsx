@@ -18,7 +18,6 @@ export default function RegisterAssetPage() {
     quantity: "1",
     location: "",
     dateRegistered: new Date().toISOString().split("T")[0],
-    dateRemoved: "",
     assetStatus: "active",
     condition: "",
     rfidUid: "",
@@ -112,7 +111,7 @@ export default function RegisterAssetPage() {
 
       // Redirect to furniture page to see the newly registered asset
       setTimeout(() => {
-        router.push("/furniture");
+        router.push("/dashboard");
       }, 500);
     } catch (err) {
       setError("Failed to register asset. Please try again.");
@@ -243,7 +242,7 @@ export default function RegisterAssetPage() {
                 }
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div>
                   <Select
                     label="Category"
                     id="category"
@@ -367,28 +366,6 @@ export default function RegisterAssetPage() {
                   }
                 />
 
-                <Input
-                  label="Date Removed"
-                  type="date"
-                  id="dateRemoved"
-                  value={formData.dateRemoved}
-                  onChange={handleInputChange}
-                  max={new Date().toISOString().split("T")[0]} //Limiting Date Pickers to Current Date 
-                  helperText="Optional - when asset was removed"
-                  icon={
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M6 2a1 1 0 00-1 1v2H4a2 2 0 00-2 2v2h16V7a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v2H7V3a1 1 0 00-1-1zm0 5a2 2 0 002 2h8a2 2 0 002-2H6z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  }
-                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">

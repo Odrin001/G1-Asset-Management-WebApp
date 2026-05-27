@@ -57,7 +57,7 @@ export function Input({
         onChange={onChange}
         max={max}   
         min={min}   
-        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition ${
+        className={`w-full px-4 py-3 text-black border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition ${
           error
             ? "border-red-300 focus:ring-red-500"
             : "border-gray-300 focus:ring-primary-500"

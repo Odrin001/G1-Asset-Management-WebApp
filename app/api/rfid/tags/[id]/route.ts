@@ -4,14 +4,14 @@ import RFIDTag from "@/models/RFIDTag";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const deletedTag = await RFIDTag.findByIdAndDelete(
-      params.id
-    );
+    const { id } = await params;
+
+    const deletedTag = await RFIDTag.findByIdAndDelete(id);
 
     if (!deletedTag) {
       return NextResponse.json(
@@ -26,6 +26,55 @@ export async function DELETE(
     );
   } catch (error) {
     console.error("Error deleting RFID tag:", error);
+
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await connectDB();
+
+    const { id } = await params;
+
+    const body = await request.json();
+
+    const updatedTag = await RFIDTag.findByIdAndUpdate(
+      id,
+      {
+        assetName: body.name,
+        category: body.category,
+        currentRoom: body.location,
+        quantity: body.quantity,
+        assetStatus: body.assetStatus,
+        condition: body.condition,
+        description: body.description,
+      },
+      { new: true }
+    );
+
+    if (!updatedTag) {
+      return NextResponse.json(
+        { message: "RFID tag not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        message: "RFID tag updated successfully",
+        updatedTag,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error updating RFID tag:", error);
 
     return NextResponse.json(
       { message: "Internal server error" },

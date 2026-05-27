@@ -118,6 +118,22 @@ export default function DashboardLayout({
             </svg>
             <span>Furniture</span>
           </Link>
+          
+          <Link
+            href="/reports"
+            className={getNavLinkClasses("/reports")}
+          >
+            <svg
+              className="w-5 h-5 flex-shrink-0"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V7.414A2 2 0 0017.414 6L14 2.586A2 2 0 0012.586 2H4z" />
+            </svg>
+
+            <span>Asset Reports</span>
+          </Link>
+
         </nav>
 
         {/* Footer */}
@@ -138,10 +154,6 @@ export default function DashboardLayout({
 
               <span>Analytics</span>
             </Link>
-
-          <button className="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white py-2 rounded-lg font-medium hover:border hover:border-slate-600 transition-all">
-            Contact Support
-          </button>
         </div>
       </div>
 

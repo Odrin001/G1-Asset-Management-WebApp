@@ -44,25 +44,10 @@ process.on("SIGTERM", () => {
   });
 });
 
-let lastUID = "";
-let lastScanTime = 0;
-
 parser.on("data", async (uid) => {
   uid = uid.replace(/[^0-9]/g, "").trim();
 
   if (!uid) return;
-  const now = Date.now();
-
-if (
-  uid === lastUID &&
-  now - lastScanTime < 3000
-) {
-  console.log("⏳ Duplicate scan ignored:", uid);
-  return;
-}
-
-lastUID = uid;
-lastScanTime = now;
 
   console.log("📡 Scan detected:", uid);
 

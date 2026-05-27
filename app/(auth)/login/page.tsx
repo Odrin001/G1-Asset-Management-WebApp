@@ -181,21 +181,11 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="flex justify-end">
-              <Link
-                href="/forgot-password"
-                className="text-sm text-primary-500 hover:text-primary-600 font-medium"
-              >
-                Forgot Password?
-              </Link>
-            </div>
-
             {/* Login Button */}
             <Button
               type="submit"
               loading={loading}
-              className="w-full rounded-2xl bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white shadow-lg shadow-primary-500/20"
+              className="w-full mt-4 rounded-2xl bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white shadow-lg shadow-primary-500/20"
             >
               Login
             </Button>
