@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (
@@ -20,22 +21,23 @@ export default function LoginPage() {
   ) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({ email: "", password: "" });
     setLoading(true);
 
     if (!email.trim()) {
-      setError("Email is required");
+      setFieldErrors((p) => ({ ...p, email: "Email is required" }));
       setLoading(false);
       return;
     }
 
     if (!validateSDCAEmail(email)) {
-      setError("Email must end with @sdca.edu.ph");
+      setFieldErrors((p) => ({ ...p, email: "Email must end with @sdca.edu.ph" }));
       setLoading(false);
       return;
     }
 
     if (!password.trim()) {
-      setError("Password is required");
+      setFieldErrors((p) => ({ ...p, password: "Password is required" }));
       setLoading(false);
       return;
     }
@@ -121,8 +123,10 @@ export default function LoginPage() {
               onChange={(e) => {
                 setEmail(e.target.value);
                 setError("");
+                setFieldErrors((p) => ({ ...p, email: "" }));
               }}
               required
+              error={fieldErrors.email}
               labelClassName="!text-slate-100"
               className="bg-slate-900/80 text-slate-100 border-slate-700 placeholder:text-slate-500"
               icon={
@@ -158,8 +162,9 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => {
-                    setPassword(e.target.value);
-                    setError("");
+                      setPassword(e.target.value);
+                      setError("");
+                      setFieldErrors((p) => ({ ...p, password: "" }));
                   }}
                   className="w-full pl-12 pr-12 py-3 border border-slate-700 bg-slate-900/90 text-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
                 />
@@ -179,6 +184,9 @@ export default function LoginPage() {
                   </svg>
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p className="text-xs text-red-300 mt-2">{fieldErrors.password}</p>
+              )}
             </div>
 
             {/* Login Button */}
