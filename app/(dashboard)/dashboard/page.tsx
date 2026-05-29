@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Asset } from "@/lib/types";
+import toast from "react-hot-toast";
 
 export default function DashboardPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -310,49 +311,91 @@ export default function DashboardPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={async () => {
-                          if (
-                            confirm(
-                              "Are you sure you want to delete this asset?"
-                            )
-                          ) {
-                            try {
-                              // Determine if this is an RFID tag or regular asset
-                                const res = await fetch(`/api/rfid/tags/${asset.id}`, {
-                                  method: "DELETE",
-                                });
+                        onClick={() => {
+                          toast(
+                            (t) => (
+                              <div className="flex flex-col gap-3">
+                                <p className="font-medium">
+                                  Delete this asset?
+                                </p>
 
-                                if (res.ok) {
-                                  const refreshed = await fetch("/api/rfid/tags");
-                                  const refreshedData = await refreshed.json();
+                                <div className="flex gap-2 justify-end">
+                                  <button
+                                    className="px-3 py-1 rounded bg-gray-200"
+                                    onClick={() => toast.dismiss(t.id)}
+                                  >
+                                    Cancel
+                                  </button>
 
-                                  const updatedAssets = refreshedData.rfidTags.map((tag: any) => ({
-                                    id: String(tag._id),
-                                    name: tag.assetName,
-                                    category: tag.category?.trim().toLowerCase(),
-                                    location: tag.currentRoom,
-                                    dateRegistered:
-                                      tag.dateRegistered ||
-                                      new Date(tag.createdAt)
-                                        .toISOString()
-                                        .split("T")[0],
-                                    rfidUid: tag.uid,
-                                    quantity: tag.quantity || 1,
-                                    assetStatus: tag.assetStatus || "active",
-                                    condition: tag.condition || "good",
-                                    createdAt: tag.createdAt,
-                                  }));
+                                  <button
+                                    className="px-3 py-1 rounded bg-red-500 text-white"
+                                    onClick={async () => {
+                                      try {
+                                        const deletedAsset = asset;
 
-                                  setAssets(updatedAssets);
-                                } else {
-                                  alert("Failed to delete asset");
-                                }
-                            } catch (error) {
-                              console.error("Error deleting asset:", error);
-                              alert("Error deleting asset");
+                                        const res = await fetch(
+                                          `/api/rfid/tags/${asset.id}`,
+                                          {
+                                            method: "DELETE",
+                                          }
+                                        );
+
+                                        if (res.ok) {
+                                          setAssets((prev) =>
+                                            prev.filter(
+                                              (a) => a.id !== asset.id
+                                            )
+                                          );
+
+                                          toast.success((toastElement) => (
+                                            <div className="flex items-center gap-3">
+                                              <span>
+                                                Asset deleted successfully
+                                              </span>
+
+                                              <button
+                                                className="text-blue-500 font-semibold"
+                                                onClick={() => {
+                                                  setAssets((prev) => [
+                                                    ...prev,
+                                                    deletedAsset,
+                                                  ]);
+
+                                                  toast.dismiss(
+                                                    toastElement.id
+                                                  );
+                                                }}
+                                              >
+                                                Undo
+                                              </button>
+                                            </div>
+                                          ));
+                                        } else {
+                                          toast.error(
+                                            "Failed to delete asset"
+                                          );
+                                        }
+                                      } catch (error) {
+                                        console.error(
+                                          "Error deleting asset:",
+                                          error
+                                        );
+                                      }
+
+                                      toast.dismiss(t.id);
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            ),
+                            {
+                              duration: 5000,
                             }
-                          }
+                          );
                         }}
+                        
                         className="p-2 text-red-600 hover:bg-red-50 rounded transition"
                       >
                         <svg

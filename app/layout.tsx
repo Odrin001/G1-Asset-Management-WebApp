@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "SDCA Asset Management System",
@@ -9,11 +10,14 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  readonly children: React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50">{children}</body>
+      <body className="bg-gray-50">
+        {children}
+        <Toaster position="top-right" />
+      </body>
     </html>
   );
 }

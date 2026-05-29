@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { validateSDCAEmail } from "@/lib/utils";
 import { Card, CardBody, Input, Button } from "@/components";
+import { toast } from "react-hot-toast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,18 +25,21 @@ export default function LoginPage() {
 
     if (!email.trim()) {
       setError("Email is required");
+      toast.error("Email is required");
       setLoading(false);
       return;
     }
 
     if (!validateSDCAEmail(email)) {
       setError("Email must end with @sdca.edu.ph");
+      toast.error("Email must end with @sdca.edu.ph");
       setLoading(false);
       return;
     }
 
     if (!password.trim()) {
       setError("Password is required");
+      toast.error("Password is required");
       setLoading(false);
       return;
     }
@@ -56,6 +60,7 @@ export default function LoginPage() {
 
       if (!res.ok) {
         setError(data.message || "Login failed");
+        toast.error(data.message || "Login failed");
         setLoading(false);
         return;
       }
@@ -65,6 +70,7 @@ export default function LoginPage() {
       router.push("/dashboard");
     } catch (error) {
       setError("Cannot connect to server");
+      toast.error("Cannot connect to server");
     } finally {
       setLoading(false);
     }
