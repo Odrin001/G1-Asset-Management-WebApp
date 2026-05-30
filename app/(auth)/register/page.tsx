@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { validateSDCAEmail } from "@/lib/utils";
+import { validateSDCAEmail, validateFullName } from "@/lib/utils";
 import { Card, CardBody, Input, Button } from "@/components";
 
 export default function RegisterPage() {
@@ -25,13 +25,32 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
 
-    // Validation
+    // Validate full name
     if (!fullName.trim()) {
       setError("Full name is required");
       setLoading(false);
       return;
     }
 
+    if (fullName.trim().length < 2) {
+      setError("Full name must be at least 2 characters");
+      setLoading(false);
+      return;
+    }
+
+    if (fullName.trim().length > 100) {
+      setError("Full name must not exceed 100 characters");
+      setLoading(false);
+      return;
+    }
+
+    if (!validateFullName(fullName)) {
+      setError("Full name can only contain letters, spaces, apostrophes, and hyphens.");
+      setLoading(false);
+      return;
+    }
+
+    // Validate email
     if (!email.trim()) {
       setError("Email is required");
       setLoading(false);
@@ -39,13 +58,33 @@ export default function RegisterPage() {
     }
 
     if (!validateSDCAEmail(email)) {
-      setError("Email must end with @sdca.edu.ph");
+      setError("Enter a valid SDCA email address");
       setLoading(false);
       return;
     }
 
-    if (!password.trim() || password.length < 6) {
+    // Validate password
+    if (!password.trim()) {
+      setError("Password is required");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length > 100) {
+      setError("Password is too long");
+      setLoading(false);
+      return;
+    }
+
+    // Validate password confirmation
+    if (!confirmPassword.trim()) {
+      setError("Please confirm your password");
       setLoading(false);
       return;
     }
@@ -57,14 +96,14 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          fullName,
-          email,
+          fullName: fullName.trim(),
+          email: email.trim().toLowerCase(),
           password
         })
       });
@@ -85,7 +124,8 @@ export default function RegisterPage() {
       setConfirmPassword("");
 
       router.push("/login");
-    } catch (err) {
+    } catch (error: unknown) {
+      console.error(error);
       setError("Cannot connect to server");
     } finally {
       setLoading(false);
@@ -145,6 +185,9 @@ export default function RegisterPage() {
                 setError("");
               }}
               required
+              maxLength={100}
+              pattern="^[A-Za-zÀ-ÖØ-öø-ÿ'’\- ]+$"
+              helperText="Only letters, spaces, apostrophes, and hyphens are allowed."
               icon={
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path

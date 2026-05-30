@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
+import { validateSDCAEmail } from "@/lib/utils";
 
 const UserSchema = new mongoose.Schema({
   fullName: String,
@@ -34,7 +35,60 @@ export async function POST(req: Request) {
 
     const { email, password } = await req.json();
 
-    const user = await User.findOne({ email });
+    // Validate email presence
+    if (!email || typeof email !== 'string') {
+      return NextResponse.json(
+        { message: "Email is required" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Validate email format
+    if (!validateSDCAEmail(trimmedEmail)) {
+      return NextResponse.json(
+        { message: "Invalid email format" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    // Validate password presence
+    if (!password || typeof password !== 'string') {
+      return NextResponse.json(
+        { message: "Password is required" },
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    if (password.length < 6 || password.length > 100) {
+      return NextResponse.json(
+        { message: "Invalid credentials" },
+        {
+          status: 401,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+
+    const user = await User.findOne({ email: trimmedEmail });
 
     if (!user) {
       return NextResponse.json(
@@ -78,7 +132,8 @@ export async function POST(req: Request) {
         },
       }
     );
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error(error);
     return NextResponse.json(
       { message: "Server error" },
       {

@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardBody, CardHeader, Input, Select, Textarea, Button } from "@/components";
+import { 
+  validateAssetForm
+} from "@/lib/utils";
 
 export default function RegisterAssetPage() {
   const router = useRouter();
@@ -37,44 +40,15 @@ export default function RegisterAssetPage() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    // Validate required fields
-    if (!formData.assetType.trim()) {
-      setError("Asset Type is required");
-      setIsLoading(false);
-      return;
-    }
-    if (!formData.name.trim()) {
-      setError("Asset Name is required");
-      setIsLoading(false);
-      return;
-    }
-    if (!formData.category.trim()) {
-      setError("Category is required");
-      setIsLoading(false);
-      return;
-    }
-    if (!formData.location.trim()) {
-      setError("Location is required");
-      setIsLoading(false);
-      return;
-    }
-    if (!formData.dateRegistered) {
-      setError("Date Registered is required");
-      setIsLoading(false);
-      return;
-    }
-    if (!formData.condition) {
-      setError("Condition is required");
-      setIsLoading(false);
-      return;
-    }
-    if (!formData.rfidUid.trim()) {
-      setError("RFID UID is required");
+    // Validate form using centralized validation
+    const validationError = validateAssetForm(formData);
+    if (validationError) {
+      setError(validationError);
       setIsLoading(false);
       return;
     }
@@ -86,14 +60,16 @@ export default function RegisterAssetPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          uid: formData.rfidUid,
-          assetName: formData.name,
-          category: formData.category,
-          currentRoom: formData.location,
-          quantity: parseInt(formData.quantity) || 1,
+          uid: formData.rfidUid.trim(),
+          assetName: formData.name.trim(),
+          category: formData.category.trim(),
+          currentRoom: formData.location.trim(),
+          quantity: Number.parseInt(formData.quantity) || 1,
           assetStatus: formData.assetStatus,
           condition: formData.condition,
-          description: formData.description || undefined,
+          description: formData.description.trim() || undefined,
+          dateRegistered: formData.dateRegistered,
+          dateRemoved: formData.dateRemoved || undefined,
         }),
       });
 
@@ -279,6 +255,7 @@ export default function RegisterAssetPage() {
                   placeholder="1"
                   value={formData.quantity}
                   onChange={handleInputChange}
+                  min="1"
                   helperText="Number of items"
                   icon={
                     <svg
