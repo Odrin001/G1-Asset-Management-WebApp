@@ -1,13 +1,21 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
-import { connectDB } from "@/lib/mongodb";
+import { connectDB } from "../../../../lib/mongodb";
 
 const UserSchema = new mongoose.Schema({
-  fullName: String,
-  email: String,
-  password: String,
-  role: String,
+  fullName: {
+    type: String
+  }, 
+  email:{
+    type: String
+  },
+  password: {
+    type: String
+  },
+  role: {
+    type: String
+  }
 });
 
 const User =
@@ -22,8 +30,8 @@ export async function OPTIONS() {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
     }
   );
 }
@@ -34,16 +42,21 @@ export async function POST(req: Request) {
 
     const { email, password } = await req.json();
 
-    const user = await User.findOne({ email });
+    const user = await mongoose.model("User").findOne({
+      email
+    }) as any;
 
     if (!user) {
       return NextResponse.json(
-        { message: "Invalid Email" },
+        {
+          message: "Invalid Email"
+        },
+
         {
           status: 401,
           headers: {
-            "Access-Control-Allow-Origin": "*",
-          },
+            "Access-Control-Allow-Origin": "*"
+          }
         }
       );
     }
@@ -52,12 +65,15 @@ export async function POST(req: Request) {
 
     if (!match) {
       return NextResponse.json(
-        { message: "Invalid Password" },
+        {
+          message: "Invalid Password"
+        },
+
         {
           status: 401,
           headers: {
-            "Access-Control-Allow-Origin": "*",
-          },
+            "Access-Control-Allow-Origin": "*"
+          }
         }
       );
     }
@@ -68,24 +84,28 @@ export async function POST(req: Request) {
         user: {
           fullName: user.fullName,
           email: user.email,
-          role: user.role,
-        },
+          role: user.role
+        }
       },
+      
       {
         status: 200,
         headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
+          "Access-Control-Allow-Origin": "*"
+        }
       }
     );
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
-      { message: "Server error" },
+      {
+        message: "Server error"
+      },
+
       {
         status: 500,
         headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
+          "Access-Control-Allow-Origin": "*"
+        }
       }
     );
   }
